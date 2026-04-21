@@ -1,6 +1,7 @@
 import * as pc from "playcanvas";
 
 import { enhanceForestEnvironment } from "./environment-assets.js";
+import { createTerrainEntity, sampleTerrainHeight } from "./terrain.js";
 import { createViewModel } from "./view-model.js";
 import {
   FOREST_HALF_EXTENT,
@@ -77,7 +78,11 @@ const createPrimitive = (
 const createAnchor = (app, name, position) => {
   const anchor = new pc.Entity(name);
   app.root.addChild(anchor);
-  anchor.setPosition(position.x, position.y ?? 0, position.z);
+  anchor.setPosition(
+    position.x,
+    getGroundHeight(position.x, position.z, position.y ?? 0),
+    position.z
+  );
   return anchor;
 };
 
@@ -91,6 +96,8 @@ const createRng = (seed) => {
 };
 
 const randomRange = (rng, min, max) => min + (max - min) * rng();
+
+const getGroundHeight = (x, z, offset = 0) => sampleTerrainHeight(x, z) + offset;
 
 const distanceToSegmentSquared = (point, start, end) => {
   const dx = end.x - start.x;
@@ -117,16 +124,34 @@ const createPathSegment = (app, material, segment, index) => {
   const dz = segment.end.z - segment.start.z;
   const length = Math.sqrt(dx * dx + dz * dz);
   const angle = Math.atan2(dx, dz) * pc.math.RAD_TO_DEG;
+  const pieces = Math.max(3, Math.ceil(length / 6.5));
 
-  createPrimitive(app, {
-    name: `path-${index + 1}`,
-    type: "box",
-    position: [(segment.start.x + segment.end.x) * 0.5, -0.12, (segment.start.z + segment.end.z) * 0.5],
-    rotation: [0, angle, 0],
-    scale: [segment.width, 0.12, length],
-    material,
-    castShadows: false
-  });
+  for (let pieceIndex = 0; pieceIndex < pieces; pieceIndex += 1) {
+    const startT = pieceIndex / pieces;
+    const endT = (pieceIndex + 1) / pieces;
+    const startX = pc.math.lerp(segment.start.x, segment.end.x, startT);
+    const startZ = pc.math.lerp(segment.start.z, segment.end.z, startT);
+    const endX = pc.math.lerp(segment.start.x, segment.end.x, endT);
+    const endZ = pc.math.lerp(segment.start.z, segment.end.z, endT);
+    const midX = (startX + endX) * 0.5;
+    const midZ = (startZ + endZ) * 0.5;
+    const segmentLength = Math.hypot(endX - startX, endZ - startZ);
+    const pieceLength = segmentLength * 1.08;
+    const startY = getGroundHeight(startX, startZ, -0.02);
+    const endY = getGroundHeight(endX, endZ, -0.02);
+    const midY = (startY + endY) * 0.5 - 0.04;
+    const pitch = -Math.atan2(endY - startY, segmentLength) * pc.math.RAD_TO_DEG;
+
+    createPrimitive(app, {
+      name: `path-${index + 1}-${pieceIndex + 1}`,
+      type: "box",
+      position: [midX, midY, midZ],
+      rotation: [pitch, angle, 0],
+      scale: [segment.width, 0.14, pieceLength],
+      material,
+      castShadows: false
+    });
+  }
 };
 
 const createLantern = (app, materials, name, position, options = {}) => {
@@ -177,7 +202,11 @@ const createRock = (app, materials, name, position, scale, rng) => {
   createPrimitive(app, {
     name,
     type: "sphere",
-    position: [position.x, position.y ?? 0.25 * scale, position.z],
+    position: [
+      position.x,
+      getGroundHeight(position.x, position.z, position.y ?? 0.25 * scale),
+      position.z
+    ],
     rotation: [randomRange(rng, -12, 12), randomRange(rng, 0, 360), randomRange(rng, -8, 8)],
     scale: [
       scale * randomRange(rng, 0.8, 1.5),
@@ -192,7 +221,7 @@ const createStump = (app, materials, name, position, scale, rng) => {
   createPrimitive(app, {
     name,
     type: "cylinder",
-    position: [position.x, 0.28 * scale, position.z],
+    position: [position.x, getGroundHeight(position.x, position.z, 0.28 * scale), position.z],
     rotation: [0, randomRange(rng, 0, 360), 0],
     scale: [0.32 * scale, 0.28 * scale, 0.32 * scale],
     material: materials.deadWood
@@ -203,7 +232,7 @@ const createLog = (app, materials, name, position, length, rotationY) => {
   createPrimitive(app, {
     name,
     type: "cylinder",
-    position: [position.x, 0.34, position.z],
+    position: [position.x, getGroundHeight(position.x, position.z, position.y ?? 0.34), position.z],
     rotation: [0, rotationY, 90],
     scale: [0.22, length, 0.22],
     material: materials.deadWood
@@ -269,7 +298,8 @@ const createTrailhead = (app, materials) => {
 
 const createAshCamp = (app, materials) => {
   const position = getLandmarkPosition("Ash Camp");
-  const center = { x: position.x, y: 0, z: position.z };
+  const center = { x: position.x, z: position.z };
+  const centerHeight = getGroundHeight(center.x, center.z);
 
   for (let index = 0; index < 8; index += 1) {
     const angle = (index / 8) * Math.PI * 2;
@@ -283,7 +313,7 @@ const createAshCamp = (app, materials) => {
   createPrimitive(app, {
     name: "ash-camp-fire",
     type: "sphere",
-    position: [center.x, 0.22, center.z],
+    position: [center.x, centerHeight + 0.22, center.z],
     scale: [0.4, 0.18, 0.4],
     material: materials.ember,
     castShadows: false
@@ -297,7 +327,7 @@ const createAshCamp = (app, materials) => {
     range: 12
   });
   app.root.addChild(fireLight);
-  fireLight.setPosition(center.x, 0.8, center.z);
+  fireLight.setPosition(center.x, centerHeight + 0.8, center.z);
 
   createLog(app, materials, "ash-camp-log-1", { x: center.x - 1.2, z: center.z + 0.9 }, 1.05, 32);
   createLog(app, materials, "ash-camp-log-2", { x: center.x + 1.2, z: center.z - 0.9 }, 0.96, -18);
@@ -306,11 +336,12 @@ const createAshCamp = (app, materials) => {
 
 const createHangingTree = (app, materials) => {
   const center = getLandmarkPosition("Hanging Tree");
+  const baseHeight = getGroundHeight(center.x, center.z);
 
   createPrimitive(app, {
     name: "hanging-tree-lantern-chain",
     type: "box",
-    position: [center.x + 1.8, 6.6, center.z - 0.1],
+    position: [center.x + 1.8, baseHeight + 6.6, center.z - 0.1],
     scale: [0.04, 2.6, 0.04],
     material: materials.deadWood
   });
@@ -318,7 +349,7 @@ const createHangingTree = (app, materials) => {
   createPrimitive(app, {
     name: "hanging-tree-lantern",
     type: "sphere",
-    position: [center.x + 1.8, 5.25, center.z - 0.1],
+    position: [center.x + 1.8, baseHeight + 5.25, center.z - 0.1],
     scale: [0.24, 0.24, 0.24],
     material: materials.lanternGlow,
     castShadows: false
@@ -332,20 +363,28 @@ const createHangingTree = (app, materials) => {
     range: 12
   });
   app.root.addChild(lanternLight);
-  lanternLight.setPosition(center.x + 1.8, 5.4, center.z - 0.1);
+  lanternLight.setPosition(center.x + 1.8, baseHeight + 5.4, center.z - 0.1);
 };
 
 const createStoneCircle = (app, materials) => {
   const center = getLandmarkPosition("Witch Stones");
+  const centerHeight = getGroundHeight(center.x, center.z);
 
   for (let index = 0; index < 7; index += 1) {
     const angle = (index / 7) * Math.PI * 2;
+    const stoneHeight = randomRange(createRng(850 + index), 4.2, 5.4);
+    const stoneX = center.x + Math.cos(angle) * 5.4;
+    const stoneZ = center.z + Math.sin(angle) * 5.4;
     createPrimitive(app, {
       name: `witch-stone-${index + 1}`,
       type: "box",
-      position: [center.x + Math.cos(angle) * 5.4, 2.3, center.z + Math.sin(angle) * 5.4],
+      position: [
+        stoneX,
+        getGroundHeight(stoneX, stoneZ, stoneHeight * 0.5 - 0.16),
+        stoneZ
+      ],
       rotation: [randomRange(createRng(550 + index), -8, 8), randomRange(createRng(650 + index), 0, 360), randomRange(createRng(750 + index), -6, 6)],
-      scale: [1.2, randomRange(createRng(850 + index), 4.2, 5.4), 0.9],
+      scale: [1.2, stoneHeight, 0.9],
       material: materials.stone
     });
   }
@@ -353,7 +392,7 @@ const createStoneCircle = (app, materials) => {
   createPrimitive(app, {
     name: "witch-stones-core",
     type: "sphere",
-    position: [center.x, 0.22, center.z],
+    position: [center.x, centerHeight + 0.22, center.z],
     scale: [0.55, 0.16, 0.55],
     material: materials.moonGlow,
     castShadows: false
@@ -367,7 +406,7 @@ const createStoneCircle = (app, materials) => {
     range: 16
   });
   app.root.addChild(coreLight);
-  coreLight.setPosition(center.x, 0.95, center.z);
+  coreLight.setPosition(center.x, centerHeight + 0.95, center.z);
 };
 
 const createHunterBlind = (app, materials) => {
@@ -579,11 +618,12 @@ const createBoardedShack = (app, materials) => {
 
 const createBlackWater = (app, materials) => {
   const center = getLandmarkPosition("Black Water");
+  const surfaceHeight = getGroundHeight(center.x, center.z, 0.08);
 
   createPrimitive(app, {
     name: "black-water-pool",
     type: "box",
-    position: [center.x, -0.34, center.z],
+    position: [center.x, surfaceHeight, center.z],
     scale: [22, 0.12, 16],
     material: materials.water,
     castShadows: false
@@ -608,7 +648,7 @@ const createBlackWater = (app, materials) => {
     range: 16
   });
   app.root.addChild(waterLight);
-  waterLight.setPosition(center.x, 1.2, center.z);
+  waterLight.setPosition(center.x, getGroundHeight(center.x, center.z, 1.2), center.z);
 };
 
 const createGravePath = (app, materials) => {
@@ -659,11 +699,12 @@ const createGravePath = (app, materials) => {
 
 const createCollapsedBridge = (app, materials) => {
   const center = getLandmarkPosition("Collapsed Bridge");
+  const ditchHeight = getGroundHeight(center.x, center.z, 0.08);
 
   createPrimitive(app, {
     name: "bridge-ditch",
     type: "box",
-    position: [center.x, -0.52, center.z],
+    position: [center.x, ditchHeight, center.z],
     scale: [12, 0.6, 7.2],
     material: materials.water,
     castShadows: false
@@ -672,7 +713,7 @@ const createCollapsedBridge = (app, materials) => {
   createPrimitive(app, {
     name: "bridge-beam-left",
     type: "box",
-    position: [center.x - 2.2, 0.38, center.z],
+    position: [center.x - 2.2, getGroundHeight(center.x - 2.2, center.z, 0.52), center.z],
     rotation: [0, 18, 0],
     scale: [0.24, 0.24, 9.2],
     material: materials.deadWood
@@ -681,7 +722,11 @@ const createCollapsedBridge = (app, materials) => {
   createPrimitive(app, {
     name: "bridge-beam-right",
     type: "box",
-    position: [center.x + 1.8, 0.22, center.z + 0.8],
+    position: [
+      center.x + 1.8,
+      getGroundHeight(center.x + 1.8, center.z + 0.8, 0.36),
+      center.z + 0.8
+    ],
     rotation: [0, 18, 0],
     scale: [0.24, 0.24, 6.2],
     material: materials.deadWood
@@ -691,7 +736,15 @@ const createCollapsedBridge = (app, materials) => {
     createPrimitive(app, {
       name: `bridge-plank-${index + 1}`,
       type: "box",
-      position: [center.x - 1.6 + index * 0.94, 0.52 - index * 0.07, center.z - 0.18 + index * 0.22],
+      position: [
+        center.x - 1.6 + index * 0.94,
+        getGroundHeight(
+          center.x - 1.6 + index * 0.94,
+          center.z - 0.18 + index * 0.22,
+          0.68 - index * 0.06
+        ),
+        center.z - 0.18 + index * 0.22
+      ],
       rotation: [0, 18, index % 2 === 0 ? 3 : -4],
       scale: [0.86, 0.08, 2.9],
       material: materials.shackWood
@@ -910,7 +963,11 @@ export const buildScene = (app) => {
   };
 
   const playerRig = new pc.Entity("player-rig");
-  playerRig.setPosition(PLAYER_START.x, PLAYER_START.y, PLAYER_START.z);
+  playerRig.setPosition(
+    PLAYER_START.x,
+    getGroundHeight(PLAYER_START.x, PLAYER_START.z, PLAYER_START.y),
+    PLAYER_START.z
+  );
 
   const cameraRig = new pc.Entity("camera-rig");
   playerRig.addChild(cameraRig);
@@ -955,14 +1012,7 @@ export const buildScene = (app) => {
   horizonGlow.setPosition(-76, 28, -FOREST_HALF_EXTENT - 128);
   app.root.addChild(horizonGlow);
 
-  const ground = createPrimitive(app, {
-    name: "ground",
-    type: "box",
-    position: [0, -0.5, 0],
-    scale: [FOREST_HALF_EXTENT * 2.4, 1, FOREST_HALF_EXTENT * 2.4],
-    material: materials.ground,
-    castShadows: false
-  });
+  const ground = createTerrainEntity(app, materials.ground);
 
   createPrimitive(app, {
     name: "north-ridge",

@@ -1,6 +1,7 @@
 import * as pc from "playcanvas";
 
 import { FOREST_HALF_EXTENT, FOREST_LANDMARKS, FOREST_PATHS } from "./config.js";
+import { sampleTerrainHeight, sampleTerrainNormal } from "./terrain.js";
 
 const LANDMARK_POSITIONS = new Map(
   FOREST_LANDMARKS.map((landmark) => [landmark.label, landmark.position])
@@ -460,8 +461,14 @@ const cloneTemplate = (template, parent, placement) => {
   const entity = template.clone();
   entity.name = placement.name;
   parent.addChild(entity);
-  entity.setLocalPosition(placement.x, placement.y ?? 0, placement.z);
-  entity.setLocalEulerAngles(placement.tiltX ?? 0, placement.rotationY ?? 0, placement.tiltZ ?? 0);
+  const groundHeight = sampleTerrainHeight(placement.x, placement.z);
+  const slopeNormal = sampleTerrainNormal(placement.x, placement.z);
+  entity.setLocalPosition(placement.x, groundHeight + (placement.y ?? 0), placement.z);
+  entity.setLocalEulerAngles(
+    (placement.tiltX ?? 0) + slopeNormal.z * 7.5,
+    placement.rotationY ?? 0,
+    (placement.tiltZ ?? 0) - slopeNormal.x * 7.5
+  );
   entity.setLocalScale(placement.scale, placement.scale, placement.scale);
   configureRenderHierarchy(
     entity,
@@ -738,7 +745,11 @@ const placeModelEntity = (asset, parent, placement) => {
 
   entity.name = placement.name;
   parent.addChild(entity);
-  entity.setLocalPosition(placement.x, placement.y ?? 0, placement.z);
+  entity.setLocalPosition(
+    placement.x,
+    sampleTerrainHeight(placement.x, placement.z) + (placement.y ?? 0),
+    placement.z
+  );
   entity.setLocalEulerAngles(0, placement.rotationY ?? 0, 0);
   entity.setLocalScale(placement.scale, placement.scale, placement.scale);
   configureRenderHierarchy(

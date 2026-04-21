@@ -16,6 +16,7 @@ import {
   STEP_BOB_X,
   STEP_BOB_Y
 } from "./config.js";
+import { sampleTerrainHeight } from "./terrain.js";
 
 export class PlayerController {
   constructor(playerRig, cameraRig, camera, viewModel, input) {
@@ -106,11 +107,12 @@ export class PlayerController {
     this.temp.y += this.verticalVelocity * dt;
     this.temp.x = pc.math.clamp(this.temp.x, -FOREST_HALF_EXTENT + 1.25, FOREST_HALF_EXTENT - 1.25);
     this.temp.z = pc.math.clamp(this.temp.z, -FOREST_HALF_EXTENT + 1.25, FOREST_HALF_EXTENT - 1.25);
-
     const wasGrounded = this.grounded;
+    const groundLevel = sampleTerrainHeight(this.temp.x, this.temp.z) + PLAYER_HEIGHT;
+    const groundSnap = wasGrounded ? 0.48 : 0.18;
 
-    if (this.temp.y <= PLAYER_HEIGHT) {
-      this.temp.y = PLAYER_HEIGHT;
+    if (this.temp.y <= groundLevel + groundSnap && this.verticalVelocity <= 0) {
+      this.temp.y = groundLevel;
       this.verticalVelocity = 0;
       this.grounded = true;
 
