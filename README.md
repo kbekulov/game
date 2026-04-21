@@ -1,14 +1,14 @@
-# Orbital Range
+# Whisper Grove
 
-Basic PlayCanvas starter for a browser-based first-person 3D shooter.
+Atmospheric PlayCanvas starter for a browser-based first-person horror shooter.
 
 ## What is here
 
 - A standalone PlayCanvas setup that runs without a local build step
 - A full-screen 3D viewport with a DOM HUD layered on top
-- First-person movement with pointer lock, mouse look, and hitscan shooting
-- A simple training arena with floating targets that respawn
-- A structure we can keep extending into weapons, enemies, pickups, audio, and maps
+- First-person movement with pointer lock and mouse look
+- A large early-dusk forest with landmarks, clearings, fog, lantern light, and eerie destinations
+- A structure we can keep extending into weapons, enemies, audio, objectives, and survival systems
 
 ## Run it locally
 
@@ -24,7 +24,7 @@ Then open `http://localhost:4173`.
 
 - `W`, `A`, `S`, `D`: move
 - Mouse: look
-- Left click: shoot
+- Click viewport: enter pointer lock
 - `Esc`: release the pointer lock
 
 ## Tech note

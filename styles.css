@@ -1,15 +1,14 @@
 :root {
   color-scheme: dark;
-  --bg: #04111a;
-  --panel: rgba(7, 17, 24, 0.72);
-  --panel-strong: rgba(7, 17, 24, 0.88);
-  --line: rgba(138, 180, 208, 0.2);
-  --text: #ebf6ff;
-  --muted: #94a9b9;
-  --accent: #77f5ff;
-  --accent-hot: #ffb659;
-  --danger: #ff6f7b;
-  --success: #9cff9c;
+  --bg: #09080b;
+  --panel: rgba(15, 11, 13, 0.72);
+  --panel-strong: rgba(15, 11, 13, 0.88);
+  --line: rgba(214, 154, 95, 0.18);
+  --text: #f7efe5;
+  --muted: #b29f93;
+  --accent: #f3b26e;
+  --accent-hot: #c95b49;
+  --reticle: rgba(247, 239, 229, 0.72);
 }
 
 * {
@@ -22,11 +21,11 @@ body {
   min-height: 100%;
   overflow: hidden;
   background:
-    radial-gradient(circle at top, rgba(29, 76, 102, 0.35), transparent 34%),
-    radial-gradient(circle at bottom left, rgba(255, 182, 89, 0.14), transparent 28%),
-    linear-gradient(180deg, #06131d 0%, #02060a 100%);
+    radial-gradient(circle at top, rgba(185, 103, 61, 0.18), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(63, 71, 79, 0.18), transparent 28%),
+    linear-gradient(180deg, #120e12 0%, #030304 100%);
   color: var(--text);
-  font-family: "Space Grotesk", "Avenir Next", "Trebuchet MS", sans-serif;
+  font-family: "Fraunces", "Avenir Next", "Trebuchet MS", serif;
 }
 
 body::before,
@@ -39,18 +38,19 @@ body::after {
 
 body::before {
   background:
-    linear-gradient(90deg, transparent 0%, rgba(119, 245, 255, 0.05) 50%, transparent 100%),
-    linear-gradient(0deg, transparent 0%, rgba(255, 182, 89, 0.04) 100%);
-  mix-blend-mode: screen;
+    linear-gradient(90deg, transparent 0%, rgba(201, 91, 73, 0.08) 48%, transparent 100%),
+    linear-gradient(0deg, transparent 0%, rgba(243, 178, 110, 0.05) 100%);
+  mix-blend-mode: lighten;
 }
 
 body::after {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 120px 120px;
-  mask-image: radial-gradient(circle at center, black 28%, transparent 88%);
-  opacity: 0.22;
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0, transparent 55%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 120px 120px, 120px 120px;
+  mask-image: radial-gradient(circle at center, black 28%, transparent 92%);
+  opacity: 0.18;
 }
 
 #application {
@@ -87,8 +87,8 @@ body::after {
   background: var(--panel);
   backdrop-filter: blur(18px);
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 20px 60px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 245, 235, 0.04);
 }
 
 .brand-panel {
@@ -102,7 +102,7 @@ body::after {
   margin-bottom: 8px;
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(119, 245, 255, 0.1);
+  background: rgba(243, 178, 110, 0.12);
   color: var(--accent);
   font-size: 11px;
   letter-spacing: 0.2em;
@@ -112,13 +112,13 @@ body::after {
 .brand-panel h1 {
   margin: 0;
   font-size: clamp(1.8rem, 4vw, 3.2rem);
-  line-height: 0.95;
+  line-height: 0.9;
   letter-spacing: -0.04em;
 }
 
 .brand-panel p {
   margin: 10px 0 0;
-  max-width: 34ch;
+  max-width: 38ch;
   color: var(--muted);
   font-size: 0.95rem;
 }
@@ -135,9 +135,9 @@ body::after {
 .stat-card {
   min-width: 0;
   padding: 14px 16px;
-  border: 1px solid rgba(148, 169, 185, 0.12);
+  border: 1px solid rgba(214, 154, 95, 0.1);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 243, 235, 0.02);
 }
 
 .stat-label {
@@ -194,17 +194,13 @@ body::after {
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 28px;
-  height: 28px;
-  margin-left: -14px;
-  margin-top: -14px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  border: 1px solid rgba(247, 239, 229, 0.22);
   border-radius: 50%;
-  transform: scale(1);
-  transition:
-    transform 100ms ease,
-    border-color 100ms ease,
-    box-shadow 100ms ease;
+  box-shadow: 0 0 20px rgba(201, 91, 73, 0.1);
 }
 
 .reticle::before,
@@ -212,50 +208,18 @@ body::after {
   content: "";
   position: absolute;
   inset: 50%;
-  background: rgba(235, 246, 255, 0.88);
+  background: var(--reticle);
   transform: translate(-50%, -50%);
 }
 
 .reticle::before {
   width: 2px;
-  height: 14px;
+  height: 12px;
 }
 
 .reticle::after {
-  width: 14px;
+  width: 12px;
   height: 2px;
-}
-
-.reticle.is-hit {
-  border-color: rgba(156, 255, 156, 0.8);
-  box-shadow: 0 0 18px rgba(156, 255, 156, 0.45);
-  transform: scale(1.18);
-}
-
-.reticle.is-miss {
-  border-color: rgba(255, 111, 123, 0.8);
-  box-shadow: 0 0 18px rgba(255, 111, 123, 0.35);
-  transform: scale(0.94);
-}
-
-.hit-marker {
-  position: fixed;
-  top: calc(50% - 56px);
-  left: 50%;
-  transform: translateX(-50%) scale(0.84);
-  color: var(--success);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  opacity: 0;
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
-}
-
-.hit-marker.is-visible {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
 }
 
 .hud-bottom {
@@ -298,7 +262,7 @@ body::after {
   justify-content: center;
   min-height: 38px;
   padding: 0 12px;
-  border: 1px solid rgba(148, 169, 185, 0.12);
+  border: 1px solid rgba(214, 154, 95, 0.12);
   border-radius: 999px;
   background: var(--panel-strong);
   white-space: nowrap;

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Orbital Range</title>
+    <title>Whisper Grove</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -14,50 +14,53 @@
     </script>
   </head>
   <body>
-    <canvas id="application" aria-label="Orbital Range 3D viewport"></canvas>
+    <canvas id="application" aria-label="Whisper Grove 3D viewport"></canvas>
 
     <div class="hud" aria-hidden="true">
       <div class="hud-top">
         <div class="brand-panel">
-          <div class="eyebrow">PlayCanvas FPS Starter</div>
-          <h1>Orbital Range</h1>
-          <p>Standalone browser prototype for a first-person 3D shooter.</p>
+          <div class="eyebrow">PlayCanvas Horror Prototype</div>
+          <h1>Whisper Grove</h1>
+          <p>
+            Early dusk has turned the forest into a maze of lanterns, ruins,
+            and black trees. This pass is about atmosphere, scale, and places
+            worth dreading.
+          </p>
         </div>
 
         <div class="stats-panel">
           <div class="stat-card">
-            <span class="stat-label">Score</span>
-            <span id="score" class="stat-value">0</span>
+            <span class="stat-label">Nearest</span>
+            <span id="landmark" class="stat-value">Trailhead Lantern</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Accuracy</span>
-            <span id="accuracy" class="stat-value">0%</span>
+            <span class="stat-label">Bearing</span>
+            <span id="bearing" class="stat-value">SW 225°</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Targets Live</span>
-            <span id="targets-live" class="stat-value">0</span>
+            <span class="stat-label">Depth</span>
+            <span id="depth" class="stat-value">0m</span>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Streak</span>
-            <span id="streak" class="stat-value">0</span>
+            <span class="stat-label">Omen</span>
+            <span id="omen" class="stat-value">Fading Ember</span>
           </div>
         </div>
       </div>
 
       <div id="center-message" class="center-message">
-        <span class="center-kicker">Live Range</span>
-        <strong>Click the viewport to lock the pointer.</strong>
-        <span>Use WASD to move, mouse to aim, and left click to fire.</span>
+        <span class="center-kicker">Early Dusk</span>
+        <strong>Click the viewport to step into Whisper Grove.</strong>
+        <span>Use WASD to move and the mouse to look. Follow lanterns, ruins, and broken trails deeper into the forest.</span>
       </div>
 
       <div id="reticle" class="reticle"></div>
-      <div id="hit-marker" class="hit-marker">HIT</div>
 
       <div class="hud-bottom">
         <div class="status-panel">
-          <span class="status-label">Status</span>
+          <span class="status-label">Field Note</span>
           <span id="status-text" class="status-text">
-            Booting the range...
+            The forest is waking up around the trailhead.
           </span>
         </div>
 
@@ -65,7 +68,7 @@
           <span id="lock-state" class="lock-state">Pointer unlocked</span>
           <span class="control-chip">WASD move</span>
           <span class="control-chip">Mouse look</span>
-          <span class="control-chip">Left click fire</span>
+          <span class="control-chip">Click to enter</span>
           <span class="control-chip">Esc release cursor</span>
         </div>
       </div>
