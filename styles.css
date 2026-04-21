@@ -1,0 +1,328 @@
+:root {
+  color-scheme: dark;
+  --bg: #04111a;
+  --panel: rgba(7, 17, 24, 0.72);
+  --panel-strong: rgba(7, 17, 24, 0.88);
+  --line: rgba(138, 180, 208, 0.2);
+  --text: #ebf6ff;
+  --muted: #94a9b9;
+  --accent: #77f5ff;
+  --accent-hot: #ffb659;
+  --danger: #ff6f7b;
+  --success: #9cff9c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(29, 76, 102, 0.35), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(255, 182, 89, 0.14), transparent 28%),
+    linear-gradient(180deg, #06131d 0%, #02060a 100%);
+  color: var(--text);
+  font-family: "Space Grotesk", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(119, 245, 255, 0.05) 50%, transparent 100%),
+    linear-gradient(0deg, transparent 0%, rgba(255, 182, 89, 0.04) 100%);
+  mix-blend-mode: screen;
+}
+
+body::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 120px 120px;
+  mask-image: radial-gradient(circle at center, black 28%, transparent 88%);
+  opacity: 0.22;
+}
+
+#application {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hud {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 20px;
+  pointer-events: none;
+}
+
+.hud-top,
+.hud-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.brand-panel,
+.stats-panel,
+.status-panel,
+.controls-panel,
+.center-message {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.brand-panel {
+  max-width: 420px;
+  padding: 16px 18px;
+  border-radius: 20px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(119, 245, 255, 0.1);
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.brand-panel h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.brand-panel p {
+  margin: 10px 0 0;
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.stats-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(110px, 1fr));
+  gap: 10px;
+  width: min(580px, 100%);
+  padding: 10px;
+  border-radius: 22px;
+}
+
+.stat-card {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(148, 169, 185, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.stat-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  display: block;
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.center-message {
+  align-self: center;
+  justify-self: center;
+  display: grid;
+  gap: 6px;
+  max-width: min(92vw, 460px);
+  padding: 18px 22px;
+  border-radius: 20px;
+  text-align: center;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.center-message.is-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.center-kicker {
+  color: var(--accent-hot);
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.center-message strong {
+  font-size: 1.1rem;
+}
+
+.center-message span:last-child {
+  color: var(--muted);
+}
+
+.reticle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: scale(1);
+  transition:
+    transform 100ms ease,
+    border-color 100ms ease,
+    box-shadow 100ms ease;
+}
+
+.reticle::before,
+.reticle::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  background: rgba(235, 246, 255, 0.88);
+  transform: translate(-50%, -50%);
+}
+
+.reticle::before {
+  width: 2px;
+  height: 14px;
+}
+
+.reticle::after {
+  width: 14px;
+  height: 2px;
+}
+
+.reticle.is-hit {
+  border-color: rgba(156, 255, 156, 0.8);
+  box-shadow: 0 0 18px rgba(156, 255, 156, 0.45);
+  transform: scale(1.18);
+}
+
+.reticle.is-miss {
+  border-color: rgba(255, 111, 123, 0.8);
+  box-shadow: 0 0 18px rgba(255, 111, 123, 0.35);
+  transform: scale(0.94);
+}
+
+.hit-marker {
+  position: fixed;
+  top: calc(50% - 56px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.84);
+  color: var(--success);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.hit-marker.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.hud-bottom {
+  align-items: flex-end;
+}
+
+.status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: min(420px, 100%);
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+
+.status-label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.status-text {
+  font-size: 1rem;
+}
+
+.controls-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 20px;
+}
+
+.lock-state,
+.control-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 169, 185, 0.12);
+  border-radius: 999px;
+  background: var(--panel-strong);
+  white-space: nowrap;
+}
+
+.lock-state {
+  color: var(--accent);
+}
+
+@media (max-width: 980px) {
+  .hud {
+    padding: 14px;
+  }
+
+  .hud-top,
+  .hud-bottom {
+    flex-direction: column;
+  }
+
+  .stats-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .controls-panel {
+    justify-content: flex-start;
+  }
+}

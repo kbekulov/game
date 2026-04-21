@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orbital Range</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "playcanvas": "https://cdn.jsdelivr.net/npm/playcanvas@2.18.0/build/playcanvas.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <canvas id="application" aria-label="Orbital Range 3D viewport"></canvas>
+
+    <div class="hud" aria-hidden="true">
+      <div class="hud-top">
+        <div class="brand-panel">
+          <div class="eyebrow">PlayCanvas FPS Starter</div>
+          <h1>Orbital Range</h1>
+          <p>Standalone browser prototype for a first-person 3D shooter.</p>
+        </div>
+
+        <div class="stats-panel">
+          <div class="stat-card">
+            <span class="stat-label">Score</span>
+            <span id="score" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Accuracy</span>
+            <span id="accuracy" class="stat-value">0%</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Targets Live</span>
+            <span id="targets-live" class="stat-value">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Streak</span>
+            <span id="streak" class="stat-value">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="center-message" class="center-message">
+        <span class="center-kicker">Live Range</span>
+        <strong>Click the viewport to lock the pointer.</strong>
+        <span>Use WASD to move, mouse to aim, and left click to fire.</span>
+      </div>
+
+      <div id="reticle" class="reticle"></div>
+      <div id="hit-marker" class="hit-marker">HIT</div>
+
+      <div class="hud-bottom">
+        <div class="status-panel">
+          <span class="status-label">Status</span>
+          <span id="status-text" class="status-text">
+            Booting the range...
+          </span>
+        </div>
+
+        <div class="controls-panel">
+          <span id="lock-state" class="lock-state">Pointer unlocked</span>
+          <span class="control-chip">WASD move</span>
+          <span class="control-chip">Mouse look</span>
+          <span class="control-chip">Left click fire</span>
+          <span class="control-chip">Esc release cursor</span>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
