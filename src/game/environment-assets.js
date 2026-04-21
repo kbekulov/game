@@ -123,6 +123,21 @@ const addLeafFan = (parent, name, material, position, width, height, rotations, 
   }
 };
 
+const addLeafCards = (parent, name, material, cards) => {
+  for (const [index, card] of cards.entries()) {
+    createSceneChild(parent, {
+      name: `${name}-${index + 1}`,
+      type: "plane",
+      material,
+      position: card.position,
+      rotation: card.rotation,
+      scale: card.scale,
+      castShadows: false,
+      receiveShadows: false
+    });
+  }
+};
+
 const getLandmarkPosition = (label) => {
   const position = LANDMARK_POSITIONS.get(label);
 
@@ -181,18 +196,20 @@ const createGroundMaterial = async (app) => {
   const tilingAmount = Math.round((FOREST_HALF_EXTENT / 96) * 28);
   const tiling = new pc.Vec2(tilingAmount, tilingAmount);
   const material = createMaterialVariant((instance) => {
-    instance.diffuse = new pc.Color(0.94, 0.94, 0.94);
+    instance.diffuse = new pc.Color(1.05, 0.72, 0.46);
     instance.diffuseMap = diffuseTexture;
     instance.diffuseMapTiling = tiling.clone();
     instance.normalMap = normalTexture;
     instance.normalMapTiling = tiling.clone();
-    instance.bumpiness = 0.7;
-    instance.gloss = 0.28;
+    instance.bumpiness = 0.58;
+    instance.gloss = 0.18;
     instance.glossMap = roughTexture;
     instance.glossMapChannel = "r";
     instance.glossMapTiling = tiling.clone();
     instance.glossInvert = true;
     instance.metalness = 0;
+    instance.emissive = new pc.Color(0.2, 0.08, 0.02);
+    instance.emissiveIntensity = 0.2;
   });
 
   return material;
@@ -213,8 +230,8 @@ const createDuskSkydome = async (app) => {
     instance.useLighting = false;
     instance.useFog = false;
     instance.diffuse = new pc.Color(0, 0, 0);
-    instance.emissive = new pc.Color(1, 1, 1);
-    instance.emissiveIntensity = 1.08;
+    instance.emissive = new pc.Color(1, 0.78, 0.48);
+    instance.emissiveIntensity = 1.5;
     instance.emissiveMap = skyTextureAsset.resource;
     instance.cull = pc.CULLFACE_FRONT;
     instance.depthWrite = false;
@@ -268,25 +285,10 @@ const createForestMaterials = async (app) => {
   configureRepeatTexture(leavesAlpha, false);
 
   const bark = createMaterialVariant((material) => {
-    material.diffuse = new pc.Color(0.74, 0.7, 0.68);
+    material.diffuse = new pc.Color(0.28, 0.12, 0.06);
     material.diffuseMap = barkDiffuse;
     material.normalMap = barkNormal;
-    material.bumpiness = 0.55;
-    material.useMetalness = true;
-    material.metalness = 0;
-    material.metalnessMap = barkArm;
-    material.metalnessMapChannel = "b";
-    material.gloss = 0.18;
-    material.glossMap = barkArm;
-    material.glossMapChannel = "g";
-    material.glossInvert = true;
-  });
-
-  const deadBark = createMaterialVariant((material) => {
-    material.diffuse = new pc.Color(0.58, 0.56, 0.54);
-    material.diffuseMap = barkDiffuse;
-    material.normalMap = barkNormal;
-    material.bumpiness = 0.5;
+    material.bumpiness = 0.48;
     material.useMetalness = true;
     material.metalness = 0;
     material.metalnessMap = barkArm;
@@ -297,8 +299,23 @@ const createForestMaterials = async (app) => {
     material.glossInvert = true;
   });
 
+  const deadBark = createMaterialVariant((material) => {
+    material.diffuse = new pc.Color(0.18, 0.08, 0.04);
+    material.diffuseMap = barkDiffuse;
+    material.normalMap = barkNormal;
+    material.bumpiness = 0.44;
+    material.useMetalness = true;
+    material.metalness = 0;
+    material.metalnessMap = barkArm;
+    material.metalnessMapChannel = "b";
+    material.gloss = 0.08;
+    material.glossMap = barkArm;
+    material.glossMapChannel = "g";
+    material.glossInvert = true;
+  });
+
   const leaves = createMaterialVariant((material) => {
-    material.diffuse = new pc.Color(0.36, 0.43, 0.34);
+    material.diffuse = new pc.Color(0.42, 0.28, 0.12);
     material.diffuseMap = leavesDiffuse;
     material.opacityMap = leavesAlpha;
     material.opacityMapChannel = "r";
@@ -306,19 +323,105 @@ const createForestMaterials = async (app) => {
     material.cull = pc.CULLFACE_NONE;
     material.twoSidedLighting = true;
     material.normalMap = leavesNormal;
-    material.bumpiness = 0.38;
+    material.bumpiness = 0.26;
     material.useMetalness = true;
     material.metalness = 0;
     material.metalnessMap = leavesArm;
     material.metalnessMapChannel = "b";
-    material.gloss = 0.22;
+    material.gloss = 0.11;
+    material.glossMap = leavesArm;
+    material.glossMapChannel = "g";
+    material.glossInvert = true;
+    material.emissive = new pc.Color(0.12, 0.05, 0.02);
+    material.emissiveIntensity = 0.26;
+  });
+
+  const leavesDark = createMaterialVariant((material) => {
+    material.diffuse = new pc.Color(0.18, 0.11, 0.05);
+    material.diffuseMap = leavesDiffuse;
+    material.opacityMap = leavesAlpha;
+    material.opacityMapChannel = "r";
+    material.alphaTest = 0.44;
+    material.cull = pc.CULLFACE_NONE;
+    material.twoSidedLighting = true;
+    material.normalMap = leavesNormal;
+    material.bumpiness = 0.22;
+    material.useMetalness = true;
+    material.metalness = 0;
+    material.metalnessMap = leavesArm;
+    material.metalnessMapChannel = "b";
+    material.gloss = 0.08;
+    material.glossMap = leavesArm;
+    material.glossMapChannel = "g";
+    material.glossInvert = true;
+    material.emissive = new pc.Color(0.08, 0.03, 0.01);
+    material.emissiveIntensity = 0.14;
+  });
+
+  const grassSunlit = createMaterialVariant((material) => {
+    material.diffuse = new pc.Color(0.88, 0.48, 0.14);
+    material.diffuseMap = leavesDiffuse;
+    material.opacityMap = leavesAlpha;
+    material.opacityMapChannel = "r";
+    material.alphaTest = 0.48;
+    material.cull = pc.CULLFACE_NONE;
+    material.twoSidedLighting = true;
+    material.normalMap = leavesNormal;
+    material.bumpiness = 0.14;
+    material.useMetalness = true;
+    material.metalness = 0;
+    material.metalnessMap = leavesArm;
+    material.metalnessMapChannel = "b";
+    material.gloss = 0.05;
+    material.glossMap = leavesArm;
+    material.glossMapChannel = "g";
+    material.glossInvert = true;
+    material.emissive = new pc.Color(0.32, 0.12, 0.03);
+    material.emissiveIntensity = 0.36;
+  });
+
+  const grassShadow = createMaterialVariant((material) => {
+    material.diffuse = new pc.Color(0.32, 0.17, 0.08);
+    material.diffuseMap = leavesDiffuse;
+    material.opacityMap = leavesAlpha;
+    material.opacityMapChannel = "r";
+    material.alphaTest = 0.48;
+    material.cull = pc.CULLFACE_NONE;
+    material.twoSidedLighting = true;
+    material.normalMap = leavesNormal;
+    material.bumpiness = 0.12;
+    material.useMetalness = true;
+    material.metalness = 0;
+    material.metalnessMap = leavesArm;
+    material.metalnessMapChannel = "b";
+    material.gloss = 0.04;
     material.glossMap = leavesArm;
     material.glossMapChannel = "g";
     material.glossInvert = true;
   });
 
-  const leavesDark = createMaterialVariant((material) => {
-    material.diffuse = new pc.Color(0.24, 0.31, 0.24);
+  const brushShadow = createMaterialVariant((material) => {
+    material.diffuse = new pc.Color(0.13, 0.08, 0.04);
+    material.diffuseMap = leavesDiffuse;
+    material.opacityMap = leavesAlpha;
+    material.opacityMapChannel = "r";
+    material.alphaTest = 0.45;
+    material.cull = pc.CULLFACE_NONE;
+    material.twoSidedLighting = true;
+    material.normalMap = leavesNormal;
+    material.bumpiness = 0.18;
+    material.useMetalness = true;
+    material.metalness = 0;
+    material.metalnessMap = leavesArm;
+    material.metalnessMapChannel = "b";
+    material.gloss = 0.05;
+    material.glossMap = leavesArm;
+    material.glossMapChannel = "g";
+    material.glossInvert = true;
+  });
+
+  const frameLeaves = createMaterialVariant((material) => {
+    material.diffuse = new pc.Color(0.18, 0.1, 0.05);
     material.diffuseMap = leavesDiffuse;
     material.opacityMap = leavesAlpha;
     material.opacityMapChannel = "r";
@@ -326,12 +429,12 @@ const createForestMaterials = async (app) => {
     material.cull = pc.CULLFACE_NONE;
     material.twoSidedLighting = true;
     material.normalMap = leavesNormal;
-    material.bumpiness = 0.34;
+    material.bumpiness = 0.18;
     material.useMetalness = true;
     material.metalness = 0;
     material.metalnessMap = leavesArm;
     material.metalnessMapChannel = "b";
-    material.gloss = 0.18;
+    material.gloss = 0.06;
     material.glossMap = leavesArm;
     material.glossMapChannel = "g";
     material.glossInvert = true;
@@ -341,7 +444,11 @@ const createForestMaterials = async (app) => {
     bark,
     deadBark,
     leaves,
-    leavesDark
+    leavesDark,
+    grassSunlit,
+    grassShadow,
+    brushShadow,
+    frameLeaves
   };
 };
 
@@ -351,65 +458,65 @@ const createForestTemplates = (materials) => {
     name: "trunk",
     type: "cylinder",
     material: materials.bark,
-    position: [0, 4.1, 0],
-    scale: [0.24, 4.1, 0.24]
+    position: [0, 5.5, 0],
+    scale: [0.17, 5.5, 0.17]
   });
   createSceneChild(tall, {
     name: "branch-left",
     type: "cylinder",
     material: materials.bark,
-    position: [-0.44, 4.9, 0.1],
-    rotation: [0, 0, -46],
-    scale: [0.07, 1.1, 0.07]
+    position: [-0.34, 6.9, 0.12],
+    rotation: [12, 0, -48],
+    scale: [0.05, 1.2, 0.05]
   });
   createSceneChild(tall, {
     name: "branch-right",
     type: "cylinder",
     material: materials.bark,
-    position: [0.46, 5.5, -0.08],
-    rotation: [0, 0, 54],
-    scale: [0.07, 1.0, 0.07]
+    position: [0.38, 7.4, -0.08],
+    rotation: [-10, 0, 56],
+    scale: [0.05, 1.1, 0.05]
   });
-  addLeafFan(tall, "lower-canopy", materials.leavesDark, [0, 4.8, 0], 4.8, 5.2, [0, 60, 120]);
-  addLeafFan(tall, "upper-canopy", materials.leaves, [0, 6.7, 0], 3.3, 3.8, [30, 90, 150]);
+  addLeafFan(tall, "mid-canopy", materials.leavesDark, [0, 7.3, 0], 3.3, 4.4, [0, 60, 120]);
+  addLeafFan(tall, "upper-canopy", materials.leaves, [0, 9.1, 0], 2.4, 3.2, [30, 90, 150]);
 
   const crooked = new pc.Entity("tree-template-crooked");
   createSceneChild(crooked, {
     name: "trunk",
     type: "cylinder",
     material: materials.bark,
-    position: [0.12, 3.7, 0],
+    position: [0.12, 4.9, 0],
     rotation: [0, 0, -5],
-    scale: [0.22, 3.7, 0.22]
+    scale: [0.16, 4.9, 0.16]
   });
   createSceneChild(crooked, {
     name: "branch-left",
     type: "cylinder",
     material: materials.bark,
-    position: [-0.58, 4.2, 0.12],
+    position: [-0.42, 6.2, 0.12],
     rotation: [12, 0, -62],
-    scale: [0.06, 1.0, 0.06]
+    scale: [0.05, 1.15, 0.05]
   });
   createSceneChild(crooked, {
     name: "branch-right",
     type: "cylinder",
     material: materials.bark,
-    position: [0.62, 4.6, -0.14],
+    position: [0.52, 6.8, -0.14],
     rotation: [-10, 0, 58],
-    scale: [0.06, 0.92, 0.06]
+    scale: [0.05, 1.02, 0.05]
   });
-  addLeafFan(crooked, "main-canopy", materials.leavesDark, [0.18, 4.6, 0], 4.1, 4.5, [18, 78, 138]);
-  addLeafFan(crooked, "top-canopy", materials.leaves, [0.4, 6.0, 0], 2.7, 3.0, [42, 102]);
+  addLeafFan(crooked, "main-canopy", materials.leavesDark, [0.18, 6.5, 0], 3.5, 4.0, [18, 78, 138]);
+  addLeafFan(crooked, "top-canopy", materials.leaves, [0.4, 7.9, 0], 2.4, 2.8, [42, 102]);
 
   const sapling = new pc.Entity("tree-template-sapling");
   createSceneChild(sapling, {
     name: "trunk",
     type: "cylinder",
     material: materials.bark,
-    position: [0, 2.4, 0],
-    scale: [0.12, 2.4, 0.12]
+    position: [0, 2.8, 0],
+    scale: [0.1, 2.8, 0.1]
   });
-  addLeafFan(sapling, "canopy", materials.leaves, [0, 3.1, 0], 2.0, 3.0, [0, 90]);
+  addLeafFan(sapling, "canopy", materials.leaves, [0, 3.8, 0], 1.7, 2.6, [0, 90]);
 
   const dead = new pc.Entity("tree-template-dead");
   createSceneChild(dead, {
@@ -454,6 +561,37 @@ const createForestTemplates = (materials) => {
     sapling,
     dead,
     deadTall
+  };
+};
+
+const createUndergrowthTemplates = (materials) => {
+  const grassSunlit = new pc.Entity("grass-template-sunlit");
+  addLeafCards(grassSunlit, "grass", materials.grassSunlit, [
+    { position: [0, 0.82, 0], rotation: [90, 0, 0], scale: [0.95, 1.8, 1] },
+    { position: [0, 0.92, 0], rotation: [90, 55, 0], scale: [1.1, 2.1, 1] },
+    { position: [0, 0.88, 0], rotation: [90, 118, 0], scale: [0.85, 1.7, 1] }
+  ]);
+
+  const grassShadow = new pc.Entity("grass-template-shadow");
+  addLeafCards(grassShadow, "grass", materials.grassShadow, [
+    { position: [0, 0.74, 0], rotation: [90, 12, 0], scale: [0.88, 1.55, 1] },
+    { position: [0, 0.78, 0], rotation: [90, 72, 0], scale: [0.92, 1.68, 1] },
+    { position: [0, 0.76, 0], rotation: [90, 132, 0], scale: [0.82, 1.48, 1] }
+  ]);
+
+  const shrub = new pc.Entity("shrub-template");
+  addLeafFan(shrub, "shrub-base", materials.brushShadow, [0, 0.92, 0], 2.4, 2.2, [0, 60, 120]);
+  addLeafFan(shrub, "shrub-top", materials.leavesDark, [0, 1.62, 0], 1.9, 1.9, [30, 90, 150]);
+
+  const frame = new pc.Entity("frame-template");
+  addLeafFan(frame, "frame-base", materials.frameLeaves, [0, 1.45, 0], 3.8, 4.4, [0, 60, 120]);
+  addLeafFan(frame, "frame-top", materials.brushShadow, [0, 2.32, 0], 3.0, 3.5, [30, 90, 150]);
+
+  return {
+    grassSunlit,
+    grassShadow,
+    shrub,
+    frame
   };
 };
 
@@ -722,9 +860,134 @@ const placeSpecialTrees = (root, templates) => {
   });
 };
 
+const placeTemplateOnTerrain = (template, parent, placement) => {
+  const entity = template.clone();
+  entity.name = placement.name;
+  parent.addChild(entity);
+  entity.setLocalPosition(
+    placement.x,
+    sampleTerrainHeight(placement.x, placement.z) + (placement.y ?? 0),
+    placement.z
+  );
+  entity.setLocalEulerAngles(
+    placement.rotationX ?? 0,
+    placement.rotationY ?? 0,
+    placement.rotationZ ?? 0
+  );
+  entity.setLocalScale(
+    placement.scaleX ?? placement.scale,
+    placement.scaleY ?? placement.scale,
+    placement.scaleZ ?? placement.scale
+  );
+  configureRenderHierarchy(entity, false, false);
+  return entity;
+};
+
+const placePathUndergrowth = (root, templates, rng) => {
+  let placed = 0;
+
+  for (const path of FOREST_PATHS) {
+    const dx = path.end.x - path.start.x;
+    const dz = path.end.z - path.start.z;
+    const length = Math.hypot(dx, dz);
+    const nx = -dz / length;
+    const nz = dx / length;
+    let distance = randomRange(rng, 2.5, 5.5);
+
+    while (distance < length - 2.5) {
+      const t = distance / length;
+      const anchorX = path.start.x + dx * t;
+      const anchorZ = path.start.z + dz * t;
+
+      for (const side of [-1, 1]) {
+        const nearOffset = path.width * 0.34 + randomRange(rng, 0.9, 2.4);
+        const farOffset = path.width * 0.52 + randomRange(rng, 2.4, 6.8);
+
+        placeTemplateOnTerrain(templates.grassSunlit, root, {
+          name: `sunlit-grass-${placed + 1}`,
+          x: anchorX + nx * side * nearOffset + randomRange(rng, -0.8, 0.8),
+          z: anchorZ + nz * side * nearOffset + randomRange(rng, -0.8, 0.8),
+          rotationY: randomRange(rng, 0, 360),
+          scaleX: randomRange(rng, 1.2, 1.7),
+          scaleY: randomRange(rng, 1.3, 2.1),
+          scaleZ: randomRange(rng, 1.2, 1.7)
+        });
+        placed += 1;
+
+        if (rng() < 0.82) {
+          placeTemplateOnTerrain(rng() < 0.6 ? templates.grassShadow : templates.shrub, root, {
+            name: `path-brush-${placed + 1}`,
+            x: anchorX + nx * side * farOffset + randomRange(rng, -1.5, 1.5),
+            z: anchorZ + nz * side * farOffset + randomRange(rng, -1.5, 1.5),
+            rotationY: randomRange(rng, 0, 360),
+            scaleX: randomRange(rng, 1.1, 1.9),
+            scaleY: randomRange(rng, 1.15, 2.1),
+            scaleZ: randomRange(rng, 1.1, 1.9)
+          });
+          placed += 1;
+        }
+      }
+
+      distance += randomRange(rng, 4.5, 8.2);
+    }
+  }
+};
+
+const placeForestUndergrowth = (root, templates, rng, helpers) => {
+  let placed = 0;
+
+  for (const grove of FOREST_GROVES) {
+    const target = Math.round(grove.target * 1.7);
+
+    for (let attempts = 0; attempts < target * 6 && placed < 420; attempts += 1) {
+      const angle = rng() * Math.PI * 2;
+      const radius = Math.sqrt(rng()) * grove.radius * 1.05;
+      const point = {
+        x: grove.center.x + Math.cos(angle) * radius,
+        z: grove.center.z + Math.sin(angle) * radius
+      };
+
+      if (!helpers.isInsideMap(point) || helpers.isNearClearing(point, 4, 1.6)) {
+        continue;
+      }
+
+      placeTemplateOnTerrain(rng() < 0.6 ? templates.shrub : templates.grassShadow, root, {
+        name: `forest-underbrush-${placed + 1}`,
+        x: point.x,
+        z: point.z,
+        rotationY: randomRange(rng, 0, 360),
+        scaleX: randomRange(rng, 1.0, 1.9),
+        scaleY: randomRange(rng, 1.1, 2.2),
+        scaleZ: randomRange(rng, 1.0, 1.9)
+      });
+      placed += 1;
+
+      if (placed >= 420) {
+        break;
+      }
+    }
+  }
+};
+
+const placeForegroundFrames = (root, templates) => {
+  const trailhead = getLandmarkPosition("Trailhead Lantern");
+  const splitCreek = getLandmarkPosition("Split Creek");
+
+  const framePlacements = [
+    { name: "frame-trailhead-left", x: trailhead.x - 12.2, z: trailhead.z - 4.5, rotationY: 22, scaleX: 2.1, scaleY: 2.45, scaleZ: 2.1 },
+    { name: "frame-trailhead-right", x: trailhead.x + 8.8, z: trailhead.z - 10.2, rotationY: 168, scaleX: 1.9, scaleY: 2.2, scaleZ: 1.9 },
+    { name: "frame-split-creek", x: splitCreek.x - 6.2, z: splitCreek.z + 11.4, rotationY: 94, scaleX: 1.8, scaleY: 2.15, scaleZ: 1.8 }
+  ];
+
+  for (const placement of framePlacements) {
+    placeTemplateOnTerrain(templates.frame, root, placement);
+  }
+};
+
 const addModeledForest = async (app, parent) => {
   const materials = await createForestMaterials(app);
   const templates = createForestTemplates(materials);
+  const undergrowthTemplates = createUndergrowthTemplates(materials);
   const forestRoot = new pc.Entity("modeled-forest");
   parent.addChild(forestRoot);
 
@@ -735,6 +998,9 @@ const addModeledForest = async (app, parent) => {
   placePathEdgeTrees(forestRoot, templates, rng, helpers);
   placePerimeterTrees(forestRoot, templates, rng, helpers);
   placeSpecialTrees(forestRoot, templates);
+  placePathUndergrowth(forestRoot, undergrowthTemplates, rng);
+  placeForestUndergrowth(forestRoot, undergrowthTemplates, rng, helpers);
+  placeForegroundFrames(forestRoot, undergrowthTemplates);
 };
 
 const placeModelEntity = (asset, parent, placement) => {

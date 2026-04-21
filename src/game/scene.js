@@ -901,62 +901,64 @@ const populateForest = (app, materials) => {
 };
 
 export const buildScene = (app) => {
-  app.scene.ambientLight = new pc.Color(0.07, 0.08, 0.09);
+  app.scene.ambientLight = new pc.Color(0.19, 0.1, 0.05);
   app.scene.fog.type = pc.FOG_LINEAR;
-  app.scene.fog.color.set(0.08, 0.07, 0.08);
-  app.scene.fog.start = 32;
-  app.scene.fog.end = 220;
+  app.scene.fog.color.set(0.73, 0.35, 0.12);
+  app.scene.fog.start = 16;
+  app.scene.fog.end = 156;
 
   const materials = {
-    ground: createMaterial(new pc.Color(0.08, 0.09, 0.08), {
+    ground: createMaterial(new pc.Color(0.2, 0.1, 0.05), {
       metalness: 0.04,
-      gloss: 0.08
+      gloss: 0.06
     }),
-    path: createMaterial(new pc.Color(0.19, 0.15, 0.12), {
+    path: createMaterial(new pc.Color(0.72, 0.34, 0.12), {
       metalness: 0.02,
+      gloss: 0.06,
+      emissive: new pc.Color(0.42, 0.16, 0.04),
+      emissiveIntensity: 0.34
+    }),
+    bark: createMaterial(new pc.Color(0.22, 0.1, 0.05), {
+      metalness: 0.04,
       gloss: 0.1
     }),
-    bark: createMaterial(new pc.Color(0.19, 0.13, 0.11), {
-      metalness: 0.04,
-      gloss: 0.18
-    }),
-    deadWood: createMaterial(new pc.Color(0.29, 0.26, 0.24), {
+    deadWood: createMaterial(new pc.Color(0.16, 0.08, 0.04), {
       metalness: 0.03,
-      gloss: 0.14
+      gloss: 0.08
     }),
-    shackWood: createMaterial(new pc.Color(0.25, 0.21, 0.18), {
+    shackWood: createMaterial(new pc.Color(0.28, 0.14, 0.08), {
       metalness: 0.04,
-      gloss: 0.16
-    }),
-    rock: createMaterial(new pc.Color(0.22, 0.23, 0.25), {
-      metalness: 0.06,
       gloss: 0.12
     }),
-    stone: createMaterial(new pc.Color(0.28, 0.29, 0.31), {
-      metalness: 0.08,
-      gloss: 0.16
+    rock: createMaterial(new pc.Color(0.18, 0.11, 0.08), {
+      metalness: 0.06,
+      gloss: 0.08
     }),
-    lanternGlow: createMaterial(new pc.Color(0.96, 0.48, 0.18), {
-      emissive: new pc.Color(0.92, 0.34, 0.08),
+    stone: createMaterial(new pc.Color(0.24, 0.15, 0.1), {
+      metalness: 0.08,
+      gloss: 0.1
+    }),
+    lanternGlow: createMaterial(new pc.Color(1, 0.56, 0.2), {
+      emissive: new pc.Color(1, 0.42, 0.1),
       emissiveIntensity: 4.6,
       gloss: 0.72
     }),
-    ember: createMaterial(new pc.Color(0.85, 0.25, 0.08), {
-      emissive: new pc.Color(1, 0.2, 0.06),
+    ember: createMaterial(new pc.Color(0.96, 0.38, 0.1), {
+      emissive: new pc.Color(1, 0.26, 0.06),
       emissiveIntensity: 4.8,
       gloss: 0.7
     }),
-    water: createMaterial(new pc.Color(0.05, 0.06, 0.08), {
-      emissive: new pc.Color(0.03, 0.06, 0.1),
-      emissiveIntensity: 1.4,
-      gloss: 0.52
+    water: createMaterial(new pc.Color(0.14, 0.08, 0.06), {
+      emissive: new pc.Color(0.16, 0.08, 0.03),
+      emissiveIntensity: 0.36,
+      gloss: 0.22
     }),
-    moonGlow: createMaterial(new pc.Color(0.55, 0.66, 0.84), {
-      emissive: new pc.Color(0.3, 0.48, 0.78),
-      emissiveIntensity: 2.6,
-      gloss: 0.6
+    moonGlow: createMaterial(new pc.Color(1, 0.84, 0.52), {
+      emissive: new pc.Color(1, 0.72, 0.28),
+      emissiveIntensity: 3.2,
+      gloss: 0.68
     }),
-    horizon: createMaterial(new pc.Color(0.09, 0.08, 0.09), {
+    horizon: createMaterial(new pc.Color(0.18, 0.08, 0.05), {
       metalness: 0.02,
       gloss: 0.04
     })
@@ -986,30 +988,30 @@ export const buildScene = (app) => {
   const duskLight = new pc.Entity("dusk-light");
   duskLight.addComponent("light", {
     type: "directional",
-    color: new pc.Color(1, 0.58, 0.28),
-    intensity: 1.55,
+    color: new pc.Color(1, 0.72, 0.4),
+    intensity: 2.45,
     castShadows: true
   });
-  duskLight.setEulerAngles(28, -52, 0);
+  duskLight.setEulerAngles(18, -32, 0);
   app.root.addChild(duskLight);
 
-  const moonLight = new pc.Entity("moon-light");
-  moonLight.addComponent("light", {
+  const fillLight = new pc.Entity("fill-light");
+  fillLight.addComponent("light", {
     type: "directional",
-    color: new pc.Color(0.22, 0.32, 0.48),
-    intensity: 0.48
+    color: new pc.Color(0.56, 0.28, 0.12),
+    intensity: 0.28
   });
-  moonLight.setEulerAngles(72, 118, 0);
-  app.root.addChild(moonLight);
+  fillLight.setEulerAngles(54, 134, 0);
+  app.root.addChild(fillLight);
 
   const horizonGlow = new pc.Entity("horizon-glow");
   horizonGlow.addComponent("light", {
     type: "omni",
-    color: new pc.Color(0.48, 0.18, 0.1),
-    intensity: 0.34,
-    range: 260
+    color: new pc.Color(1, 0.46, 0.12),
+    intensity: 0.9,
+    range: 340
   });
-  horizonGlow.setPosition(-76, 28, -FOREST_HALF_EXTENT - 128);
+  horizonGlow.setPosition(-164, 72, -FOREST_HALF_EXTENT - 164);
   app.root.addChild(horizonGlow);
 
   const ground = createTerrainEntity(app, materials.ground);
@@ -1063,10 +1065,10 @@ export const buildScene = (app) => {
   populateForest(app, materials);
 
   createPrimitive(app, {
-    name: "moon",
+    name: "sun-disk",
     type: "sphere",
-    position: [FOREST_HALF_EXTENT * 0.82, 126, -FOREST_HALF_EXTENT - 180],
-    scale: [18, 18, 18],
+    position: [-FOREST_HALF_EXTENT * 0.52, 98, -FOREST_HALF_EXTENT - 182],
+    scale: [34, 34, 34],
     material: materials.moonGlow,
     castShadows: false,
     receiveShadows: false
