@@ -7,7 +7,7 @@ Atmospheric PlayCanvas starter for a browser-based first-person horror shooter.
 - A standalone PlayCanvas setup that runs without a local build step
 - A full-screen 3D viewport with a DOM HUD layered on top
 - First-person movement with pointer lock, sprinting, jumping, and mouse look
-- A large early-dusk forest with landmarks, clearings, fog, lantern light, and layered high-fidelity sky and forest props
+- A much larger early-dusk forest with a wider trail network, denser modeled tree cover, fog, lantern light, and layered sky/ground detail
 - A structure we can keep extending into weapons, enemies, audio, objectives, and survival systems
 
 ## Run it locally
