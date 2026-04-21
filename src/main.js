@@ -15,8 +15,8 @@ app.start();
 
 const hud = new Hud();
 const input = new InputController(canvas);
-const { playerRig, camera, describePosition, environmentReady } = buildScene(app);
-const player = new PlayerController(playerRig, camera, input);
+const { playerRig, cameraRig, camera, viewModel, describePosition, environmentReady } = buildScene(app);
+const player = new PlayerController(playerRig, cameraRig, camera, viewModel, input);
 const environmentState = {
   loading: true,
   degraded: false

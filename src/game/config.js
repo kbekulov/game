@@ -7,6 +7,12 @@ export const JUMP_VELOCITY = 5.25;
 export const GRAVITY = 17.5;
 export const MOUSE_SENSITIVITY = 0.11;
 export const MAX_PITCH = 78;
+export const STEP_BOB_FREQUENCY = 7.4;
+export const STEP_BOB_SPRINT_FREQUENCY = 9.6;
+export const STEP_BOB_X = 0.018;
+export const STEP_BOB_Y = 0.034;
+export const STEP_BOB_ROLL = 1.1;
+export const STEP_BOB_PITCH = 0.45;
 
 export const FOREST_LANDMARKS = [
   {

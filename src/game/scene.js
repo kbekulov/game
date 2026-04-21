@@ -1,6 +1,7 @@
 import * as pc from "playcanvas";
 
 import { enhanceForestEnvironment } from "./environment-assets.js";
+import { createViewModel } from "./view-model.js";
 import {
   FOREST_HALF_EXTENT,
   FOREST_LANDMARKS,
@@ -911,13 +912,18 @@ export const buildScene = (app) => {
   const playerRig = new pc.Entity("player-rig");
   playerRig.setPosition(PLAYER_START.x, PLAYER_START.y, PLAYER_START.z);
 
+  const cameraRig = new pc.Entity("camera-rig");
+  playerRig.addChild(cameraRig);
+
   const camera = new pc.Entity("camera");
   camera.addComponent("camera", {
     clearColor: new pc.Color(0.14, 0.09, 0.08),
+    nearClip: 0.03,
     farClip: 900,
     fov: 72
   });
-  playerRig.addChild(camera);
+  cameraRig.addChild(camera);
+  const viewModel = createViewModel(camera);
   app.root.addChild(playerRig);
 
   const duskLight = new pc.Entity("dusk-light");
@@ -1067,7 +1073,9 @@ export const buildScene = (app) => {
 
   return {
     playerRig,
+    cameraRig,
     camera,
+    viewModel,
     describePosition,
     environmentReady
   };
