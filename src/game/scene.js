@@ -1,5 +1,6 @@
 import * as pc from "playcanvas";
 
+import { enhanceForestEnvironment } from "./environment-assets.js";
 import {
   FOREST_HALF_EXTENT,
   FOREST_LANDMARKS,
@@ -870,7 +871,7 @@ export const buildScene = (app) => {
   horizonGlow.setPosition(-18, 18, -92);
   app.root.addChild(horizonGlow);
 
-  createPrimitive(app, {
+  const ground = createPrimitive(app, {
     name: "ground",
     type: "box",
     position: [0, -0.5, 0],
@@ -934,6 +935,8 @@ export const buildScene = (app) => {
     receiveShadows: false
   });
 
+  const environmentReady = enhanceForestEnvironment(app, { groundEntity: ground });
+
   const landmarkVectors = FOREST_LANDMARKS.map((landmark) => ({
     ...landmark,
     vector: new pc.Vec3(landmark.position.x, 0, landmark.position.z)
@@ -982,6 +985,7 @@ export const buildScene = (app) => {
   return {
     playerRig,
     camera,
-    describePosition
+    describePosition,
+    environmentReady
   };
 };

@@ -15,8 +15,12 @@ app.start();
 
 const hud = new Hud();
 const input = new InputController(canvas);
-const { playerRig, camera, describePosition } = buildScene(app);
+const { playerRig, camera, describePosition, environmentReady } = buildScene(app);
 const player = new PlayerController(playerRig, camera, input);
+const environmentState = {
+  loading: true,
+  degraded: false
+};
 
 const isPointerLocked = () => document.pointerLockElement === canvas;
 
@@ -34,11 +38,26 @@ const syncHud = () => {
   hud.setBearing(formatBearing(player.getYaw()));
   hud.setDepth(`${info.depth}m`);
   hud.setOmen(info.omen);
-  hud.setStatus(
-    isPointerLocked()
-      ? info.status
-      : "Click the viewport to leave the trailhead and enter the forest."
-  );
+
+  if (environmentState.loading) {
+    hud.setStatus(
+      isPointerLocked()
+        ? "The grove is taking shape. Higher-fidelity sky and forest detail are still streaming in."
+        : "Higher-fidelity sky and forest detail are still loading. Click the viewport to enter when you're ready."
+    );
+    return;
+  }
+
+  if (!isPointerLocked()) {
+    hud.setStatus(
+      environmentState.degraded
+        ? "Click the viewport to enter the forest. Some higher-fidelity detail failed to load, but the grove is still explorable."
+        : "Click the viewport to leave the trailhead and enter the forest."
+    );
+    return;
+  }
+
+  hud.setStatus(info.status);
 };
 
 canvas.addEventListener("click", () => {
@@ -61,6 +80,17 @@ window.addEventListener("contextmenu", (event) => {
 
 hud.setPointerLocked(false);
 syncHud();
+
+environmentReady.then(({ failedCount }) => {
+  environmentState.loading = false;
+  environmentState.degraded = failedCount > 0;
+  syncHud();
+}).catch((error) => {
+  console.error(error);
+  environmentState.loading = false;
+  environmentState.degraded = true;
+  syncHud();
+});
 
 app.on("update", (dt) => {
   player.update(dt);

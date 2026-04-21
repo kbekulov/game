@@ -4,12 +4,24 @@ export class InputController {
     this.keys = new Set();
     this.lookDelta = { x: 0, y: 0 };
     this.fireQueued = false;
+    this.jumpQueued = false;
 
     window.addEventListener("keydown", (event) => {
+      if (event.code === "Space") {
+        event.preventDefault();
+        if (!event.repeat) {
+          this.jumpQueued = true;
+        }
+      }
+
       this.keys.add(event.code);
     });
 
     window.addEventListener("keyup", (event) => {
+      if (event.code === "Space") {
+        event.preventDefault();
+      }
+
       this.keys.delete(event.code);
     });
 
@@ -18,6 +30,7 @@ export class InputController {
       this.lookDelta.x = 0;
       this.lookDelta.y = 0;
       this.fireQueued = false;
+      this.jumpQueued = false;
     });
 
     window.addEventListener("mousemove", (event) => {
@@ -59,6 +72,12 @@ export class InputController {
   consumeFire() {
     const queued = this.fireQueued;
     this.fireQueued = false;
+    return queued;
+  }
+
+  consumeJump() {
+    const queued = this.jumpQueued;
+    this.jumpQueued = false;
     return queued;
   }
 }

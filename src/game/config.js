@@ -2,6 +2,9 @@ export const PLAYER_HEIGHT = 1.65;
 export const PLAYER_START = { x: -62, y: PLAYER_HEIGHT, z: 58 };
 export const FOREST_HALF_EXTENT = 96;
 export const MOVE_SPEED = 10.5;
+export const SPRINT_MULTIPLIER = 1.65;
+export const JUMP_VELOCITY = 5.25;
+export const GRAVITY = 17.5;
 export const MOUSE_SENSITIVITY = 0.11;
 export const MAX_PITCH = 78;
 
