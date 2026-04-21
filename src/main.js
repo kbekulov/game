@@ -51,6 +51,10 @@ document.addEventListener("pointerlockchange", () => {
   hud.setPointerLocked(isPointerLocked());
 });
 
+document.addEventListener("pointerlockerror", () => {
+  hud.setStatus("Pointer lock was blocked. Click directly inside the viewport to enter the forest.");
+});
+
 window.addEventListener("contextmenu", (event) => {
   event.preventDefault();
 });

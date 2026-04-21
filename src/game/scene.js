@@ -761,10 +761,10 @@ const populateForest = (app, materials) => {
 
 export const buildScene = (app) => {
   app.scene.ambientLight = new pc.Color(0.08, 0.09, 0.1);
-  app.scene.fog = pc.FOG_LINEAR;
-  app.scene.fogColor = new pc.Color(0.08, 0.07, 0.08);
-  app.scene.fogStart = 18;
-  app.scene.fogEnd = 126;
+  app.scene.fog.type = pc.FOG_LINEAR;
+  app.scene.fog.color.set(0.08, 0.07, 0.08);
+  app.scene.fog.start = 18;
+  app.scene.fog.end = 126;
 
   const materials = {
     ground: createMaterial(new pc.Color(0.08, 0.09, 0.08), {
