@@ -17,11 +17,17 @@ export class Hud {
   private readonly screenFlash = this.byId("screen-flash");
 
   onEngage(handler: () => void): void {
-    this.engageButton.addEventListener("click", handler);
+    this.engageButton.addEventListener("click", () => {
+      this.engageButton.blur();
+      handler();
+    });
   }
 
   onRestart(handler: () => void): void {
-    this.restartButton.addEventListener("click", handler);
+    this.restartButton.addEventListener("click", () => {
+      this.restartButton.blur();
+      handler();
+    });
   }
 
   setObjective(text: string): void {
@@ -59,13 +65,25 @@ export class Hud {
 
   showIntro(visible: boolean): void {
     this.introOverlay.classList.toggle("visible", visible);
+    this.introOverlay.setAttribute("aria-hidden", String(!visible));
+    this.engageButton.disabled = !visible;
+
+    if (!visible && document.activeElement === this.engageButton) {
+      this.engageButton.blur();
+    }
   }
 
   showResult(visible: boolean, eyebrow = "Status", title = "", body = ""): void {
     this.resultOverlay.classList.toggle("visible", visible);
+    this.resultOverlay.setAttribute("aria-hidden", String(!visible));
     this.resultEyebrow.textContent = eyebrow;
     this.resultTitle.textContent = title;
     this.resultBody.textContent = body;
+    this.restartButton.disabled = !visible;
+
+    if (!visible && document.activeElement === this.restartButton) {
+      this.restartButton.blur();
+    }
   }
 
   private byId(id: string): HTMLElement {

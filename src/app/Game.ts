@@ -194,6 +194,7 @@ export class Game {
   private startPlaying(): void {
     this.state = "playing";
     this.resetPlayableState();
+    this.canvas.focus();
     this.input.requestPointerLock();
     this.hud.showIntro(false);
     this.hud.showResult(false);
