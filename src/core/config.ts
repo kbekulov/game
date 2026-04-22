@@ -42,6 +42,7 @@ export const PLAYER_CONFIG = {
   jumpVelocity: 7.25,
   stepHeight: 0.48,
   maxSnapDown: 0.55,
+  fallRecoveryY: -6,
   maxPitch: 84,
   mouseSensitivity: 0.085
 };

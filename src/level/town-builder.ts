@@ -544,6 +544,12 @@ export const buildTownLevel = (app: pc.Application): TownBuildResult => {
   bounce.setEulerAngles(55, -34, 0);
   root.addChild(bounce);
 
+  collisionWorld.addBox(new pc.Vec3(0, -1.2, 6), new pc.Vec3(120, 2.4, 120), {
+    name: "district-foundation",
+    surface: "stone",
+    shootable: false
+  });
+
   addSolid(root, collisionWorld, materials, {
     name: "plaza-ground",
     position: [0, -0.3, 0],

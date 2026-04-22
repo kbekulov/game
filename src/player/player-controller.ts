@@ -38,6 +38,7 @@ export class PlayerController {
 
   private readonly position = new pc.Vec3();
   private readonly velocity = new pc.Vec3();
+  private readonly lastSafePosition = new pc.Vec3();
   private yaw = 0;
   private pitch = 0;
   private onGround = false;
@@ -102,6 +103,8 @@ export class PlayerController {
       this.currentSurface = ground.surface;
     }
 
+    this.lastSafePosition.copy(this.position);
+
     this.applyTransforms();
   }
 
@@ -139,8 +142,8 @@ export class PlayerController {
     }
 
     const yawRadians = this.yaw * pc.math.DEG_TO_RAD;
-    const forwardX = Math.sin(yawRadians);
-    const forwardZ = Math.cos(yawRadians);
+    const forwardX = -Math.sin(yawRadians);
+    const forwardZ = -Math.cos(yawRadians);
     const rightX = Math.cos(yawRadians);
     const rightZ = -Math.sin(yawRadians);
 
@@ -211,6 +214,12 @@ export class PlayerController {
       const landingIntensity = clamp(Math.abs(this.velocity.y) * 0.08 + 0.35, 0.25, 1);
       this.pendingEvents.landingIntensity = landingIntensity;
       this.landingOffset = -CAMERA_CONFIG.landingKick * landingIntensity;
+    }
+
+    if (this.onGround) {
+      this.lastSafePosition.copy(this.position);
+    } else if (this.position.y < PLAYER_CONFIG.fallRecoveryY) {
+      this.recoverToSafePosition();
     }
 
     this.landingOffset = damp(this.landingOffset, 0, CAMERA_CONFIG.landingRecover, dt);
@@ -343,5 +352,25 @@ export class PlayerController {
     this.pitchPivot.setLocalEulerAngles(this.pitch + this.landingOffset * 140, 0, bobRoll);
     this.camera.setLocalPosition(bobX, 0, 0);
     this.weaponAnchor.setLocalPosition(0, 0, 0);
+  }
+
+  private recoverToSafePosition(): void {
+    this.position.copy(this.lastSafePosition);
+    this.velocity.set(0, 0, 0);
+    this.onGround = true;
+    this.landingOffset = 0;
+
+    const ground = this.world.findGround(
+      this.position.x,
+      this.position.z,
+      this.position.y + PLAYER_CONFIG.stepHeight + 1,
+      PLAYER_CONFIG.radius,
+      PLAYER_CONFIG.height + PLAYER_CONFIG.stepHeight + 2
+    );
+
+    if (ground) {
+      this.position.y = ground.height;
+      this.currentSurface = ground.surface;
+    }
   }
 }
