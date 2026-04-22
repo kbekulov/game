@@ -3,6 +3,7 @@ type ActionName =
   | "moveBackward"
   | "moveLeft"
   | "moveRight"
+  | "aim"
   | "walk"
   | "sprint"
   | "jump"
@@ -16,6 +17,7 @@ const KEY_BINDINGS: Record<Exclude<ActionName, "fire">, string[]> = {
   moveBackward: ["KeyS", "ArrowDown"],
   moveLeft: ["KeyA", "ArrowLeft"],
   moveRight: ["KeyD", "ArrowRight"],
+  aim: [],
   walk: ["ControlLeft", "ControlRight"],
   sprint: ["ShiftLeft", "ShiftRight"],
   jump: ["Space"],
@@ -80,6 +82,10 @@ export class InputManager {
       return this.buttonsDown.has(0);
     }
 
+    if (action === "aim") {
+      return this.buttonsDown.has(2);
+    }
+
     return KEY_BINDINGS[action].some((code) => this.keysDown.has(code));
   }
 
@@ -88,12 +94,20 @@ export class InputManager {
       return this.buttonsPressed.has(0);
     }
 
+    if (action === "aim") {
+      return this.buttonsPressed.has(2);
+    }
+
     return KEY_BINDINGS[action].some((code) => this.keysPressed.has(code));
   }
 
   wasActionReleased(action: ActionName): boolean {
     if (action === "fire") {
       return this.buttonsReleased.has(0);
+    }
+
+    if (action === "aim") {
+      return this.buttonsReleased.has(2);
     }
 
     return KEY_BINDINGS[action].some((code) => this.keysReleased.has(code));

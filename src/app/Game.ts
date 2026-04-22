@@ -119,6 +119,7 @@ export class Game {
       this.player.getEyePosition(),
       this.player.getViewDirection()
     );
+    const weaponAudioCues = this.weapon.consumeAudioCues();
 
     if (shot) {
       this.audio.playGunshot();
@@ -128,8 +129,16 @@ export class Game {
       );
       this.reticleKick = Math.min(1, this.reticleKick + 0.85);
       this.handlePlayerShot(shot.origin, shot.direction, shot.maxDistance);
-    } else if (this.weapon.getActionLabel() === "Dry fire") {
-      this.audio.playDryFire();
+    }
+
+    for (const cue of weaponAudioCues) {
+      if (cue === "reload") {
+        this.audio.playReload("reload");
+      } else if (cue === "empty-reload") {
+        this.audio.playReload("empty");
+      } else if (cue === "dry-fire") {
+        this.audio.playDryFire();
+      }
     }
 
     const footsteps = this.player.consumeFootsteps();
@@ -154,7 +163,7 @@ export class Game {
       }
     }
 
-    this.updateHud(playerFrame.movementState);
+    this.updateHud(playerFrame.movementState, playerFrame.aiming);
 
     if (!this.player.isAlive()) {
       this.state = "lose";
@@ -188,7 +197,7 @@ export class Game {
     this.beamEffects.splice(0).forEach((effect) => effect.entity.destroy());
     this.state = "intro";
     this.reticleKick = 0;
-    this.updateHud("idle");
+    this.updateHud("idle", false);
   }
 
   private startPlaying(): void {
@@ -208,7 +217,7 @@ export class Game {
     });
     this.beamEffects.splice(0).forEach((effect) => effect.entity.destroy());
     this.hud.setObjective(GAME_CONFIG.world.objectiveText);
-    this.updateHud("idle");
+    this.updateHud("idle", false);
   }
 
   private handlePlayerShot(origin: pc.Vec3, direction: pc.Vec3, maxDistance: number): void {
@@ -275,16 +284,22 @@ export class Game {
     }
   }
 
-  private updateHud(movementState: string): void {
+  private updateHud(movementState: string, aiming: boolean): void {
     const aliveTargets = this.enemies.filter((enemy) => enemy.isAlive()).length;
+    const weaponState = this.weapon.getActionLabel();
+    const statusText = aiming && weaponState === "Ready"
+      ? "Focused aim"
+      : movementState === "idle"
+        ? weaponState
+        : movementState;
     this.hud.setHealth(this.player.getHealth());
     this.hud.setTargets(aliveTargets, this.enemies.length);
     this.hud.setAmmo(
       this.weapon.getAmmo(),
       this.weapon.getReserveAmmo(),
-      this.weapon.getActionLabel()
+      aiming && weaponState === "Ready" ? "Focused aim active" : weaponState
     );
-    this.hud.setState(movementState === "idle" ? this.weapon.getActionLabel() : movementState);
+    this.hud.setState(statusText);
   }
 
   private spawnBeam(

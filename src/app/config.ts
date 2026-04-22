@@ -14,6 +14,9 @@ export const GAME_CONFIG = {
     ]
   },
   player: {
+    fov: 74,
+    aimFov: 56,
+    aimSensitivityMultiplier: 0.72,
     eyeHeight: 1.62,
     radius: 0.42,
     collisionHeight: 1.82,
@@ -37,7 +40,8 @@ export const GAME_CONFIG = {
     },
     landingScale: 0.025,
     recoilRecovery: 14,
-    cameraRoll: 2.1
+    cameraRoll: 2.1,
+    aimMoveSpeedMultiplier: 1
   },
   weapon: {
     magazineSize: 17,

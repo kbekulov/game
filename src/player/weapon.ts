@@ -1,13 +1,15 @@
 import * as pc from "playcanvas";
 
 import { GAME_CONFIG, MovementState } from "../app/config";
-import { clamp, damp, easeInOutCubic, inverseLerp, trianglePulse } from "../core/math";
+import { clamp, damp, easeInOutCubic, inverseLerp, lerp, trianglePulse } from "../core/math";
 import { InputManager } from "../engine/input";
 
 export interface WeaponFrameState {
   readonly movementState: MovementState;
   readonly moveAmount: number;
   readonly sprintAmount: number;
+  readonly aiming: boolean;
+  readonly aimAmount: number;
   readonly grounded: boolean;
   readonly bobX: number;
   readonly bobY: number;
@@ -21,6 +23,8 @@ export interface WeaponShot {
   readonly direction: pc.Vec3;
   readonly maxDistance: number;
 }
+
+export type WeaponAudioCue = "reload" | "empty-reload" | "dry-fire";
 
 type WeaponAction = "reload" | "empty-reload" | "press-check" | "dry-fire" | "fire";
 
@@ -52,6 +56,7 @@ export class PistolWeapon {
   private recoilYaw = 0;
   private actionLabel = "Ready";
   private slideLocked = false;
+  private readonly audioCues: WeaponAudioCue[] = [];
 
   constructor(parent: pc.Entity) {
     this.root = new pc.Entity("pistol-root");
@@ -144,6 +149,7 @@ export class PistolWeapon {
     this.actionLabel = "Ready";
     this.slideLocked = false;
     this.muzzleFlash.enabled = false;
+    this.audioCues.length = 0;
   }
 
   update(
@@ -204,6 +210,7 @@ export class PistolWeapon {
         };
         this.shotCooldown = 0.12;
         this.actionLabel = "Dry fire";
+        this.audioCues.push("dry-fire");
       }
     }
 
@@ -235,6 +242,10 @@ export class PistolWeapon {
     return "Ready";
   }
 
+  consumeAudioCues(): WeaponAudioCue[] {
+    return this.audioCues.splice(0, this.audioCues.length);
+  }
+
   private tryStartReload(): void {
     if (this.reserveAmmo <= 0 || this.magazineAmmo === GAME_CONFIG.weapon.magazineSize) {
       return;
@@ -247,6 +258,7 @@ export class PistolWeapon {
       time: 0
     };
     this.actionLabel = empty ? "Empty reload" : "Reloading";
+    this.audioCues.push(empty ? "empty-reload" : "reload");
   }
 
   private tryStartPressCheck(): void {
@@ -364,6 +376,33 @@ export class PistolWeapon {
         slideOffset = Math.max(slideOffset, trianglePulse(t, 0.16, 0.36, 0.58) * 0.04);
       }
     }
+
+    const aimBlend =
+      this.action && this.action.type !== "fire"
+        ? 0
+        : frame.aimAmount;
+    const aimPosition = {
+      x: 0.04,
+      y: -0.145,
+      z: -0.145
+    };
+    const aimRotation = {
+      x: 0.4,
+      y: -0.8,
+      z: 0
+    };
+    const bobScale = 1 - aimBlend * 0.78;
+
+    basePosition.x *= bobScale;
+    basePosition.y = lerp(basePosition.y, basePosition.y - frame.bobY * 0.32, aimBlend);
+    baseRotation.z *= bobScale;
+
+    basePosition.x = lerp(basePosition.x, aimPosition.x, aimBlend);
+    basePosition.y = lerp(basePosition.y, aimPosition.y, aimBlend);
+    basePosition.z = lerp(basePosition.z, aimPosition.z, aimBlend);
+    baseRotation.x = lerp(baseRotation.x, aimRotation.x, aimBlend);
+    baseRotation.y = lerp(baseRotation.y, aimRotation.y, aimBlend);
+    baseRotation.z = lerp(baseRotation.z, aimRotation.z, aimBlend);
 
     this.root.setLocalPosition(basePosition);
     this.root.setLocalEulerAngles(baseRotation);

@@ -10,6 +10,8 @@ export interface PlayerFrameState {
   readonly movementState: MovementState;
   readonly moveAmount: number;
   readonly sprintAmount: number;
+  readonly aiming: boolean;
+  readonly aimAmount: number;
   readonly grounded: boolean;
   readonly bobX: number;
   readonly bobY: number;
@@ -36,6 +38,7 @@ export class PlayerController {
   private landingKick = 0;
   private recoilPitch = 0;
   private recoilYaw = 0;
+  private aimAmount = 0;
   private stepAccumulator = 0;
   private stepEvents = 0;
   private landEvents: number[] = [];
@@ -50,7 +53,7 @@ export class PlayerController {
     this.weaponMount = new pc.Entity("weapon-mount");
 
     this.camera.addComponent("camera", {
-      fov: 74,
+      fov: GAME_CONFIG.player.fov,
       nearClip: 0.03,
       farClip: 140,
       clearColor: new pc.Color(0.72, 0.84, 0.93)
@@ -77,6 +80,7 @@ export class PlayerController {
     this.landingKick = 0;
     this.recoilPitch = 0;
     this.recoilYaw = 0;
+    this.aimAmount = 0;
     this.stepAccumulator = 0;
     this.stepEvents = 0;
     this.landEvents = [];
@@ -93,11 +97,15 @@ export class PlayerController {
     const look = input.consumeLookDelta();
     this.lastLookX = look.x;
     this.lastLookY = look.y;
+    const aiming = input.isActionDown("aim") && input.isPointerLocked();
+    const lookSensitivity =
+      GAME_CONFIG.player.mouseSensitivity *
+      (aiming ? GAME_CONFIG.player.aimSensitivityMultiplier : 1);
 
     if (input.isPointerLocked()) {
-      this.yaw -= look.x * GAME_CONFIG.player.mouseSensitivity;
+      this.yaw -= look.x * lookSensitivity;
       this.pitch = clamp(
-        this.pitch + look.y * GAME_CONFIG.player.mouseSensitivity,
+        this.pitch + look.y * lookSensitivity,
         -GAME_CONFIG.player.maxLookPitch,
         GAME_CONFIG.player.maxLookPitch
       );
@@ -110,13 +118,18 @@ export class PlayerController {
     const normalizedZ = movementLength > 0 ? moveZ / movementLength : 0;
 
     const forwardInput = normalizedZ;
-    const walking = input.isActionDown("walk");
+    const walking = input.isActionDown("walk") || aiming;
     const sprinting =
-      input.isActionDown("sprint") && forwardInput > 0.25 && movementLength > 0.1 && this.grounded;
+      input.isActionDown("sprint") &&
+      !aiming &&
+      forwardInput > 0.25 &&
+      movementLength > 0.1 &&
+      this.grounded;
     const stateSpeed = sprinting
       ? GAME_CONFIG.player.sprintSpeed
       : walking
-        ? GAME_CONFIG.player.walkSpeed
+        ? GAME_CONFIG.player.walkSpeed *
+          (aiming ? GAME_CONFIG.player.aimMoveSpeedMultiplier : 1)
         : GAME_CONFIG.player.jogSpeed;
 
     const yawRadians = radians(this.yaw);
@@ -211,7 +224,8 @@ export class PlayerController {
     this.updateHeadBob(dt, movementState, horizontalSpeed);
     this.updateLanding(dt);
     this.updateRecoil(dt);
-    this.syncTransforms();
+    this.aimAmount = damp(this.aimAmount, aiming ? 1 : 0, 12, dt);
+    this.syncTransforms(dt);
 
     const distanceTravelled = Math.hypot(
       this.position.x - previousPosition.x,
@@ -236,6 +250,8 @@ export class PlayerController {
       movementState,
       moveAmount,
       sprintAmount,
+      aiming,
+      aimAmount: this.aimAmount,
       grounded: this.grounded,
       bobX: this.bobX,
       bobY: this.bobY,
@@ -333,18 +349,27 @@ export class PlayerController {
     this.recoilYaw = damp(this.recoilYaw, 0, GAME_CONFIG.player.recoilRecovery, dt);
   }
 
-  private syncTransforms(): void {
+  private syncTransforms(dt = 1 / 60): void {
     const breathing = Math.sin(this.bobTime * 0.32) * 0.005;
+    const aimBobScale = 1 - this.aimAmount * 0.72;
     const cameraRoll =
-      this.bobX * 45 +
-      clamp(this.velocity.x * 0.08, -GAME_CONFIG.player.cameraRoll, GAME_CONFIG.player.cameraRoll);
+      this.bobX * 45 * aimBobScale +
+      clamp(
+        this.velocity.x * 0.08,
+        -GAME_CONFIG.player.cameraRoll * aimBobScale,
+        GAME_CONFIG.player.cameraRoll * aimBobScale
+      );
+    const targetFov =
+      GAME_CONFIG.player.fov +
+      (GAME_CONFIG.player.aimFov - GAME_CONFIG.player.fov) * this.aimAmount;
 
     this.root.setLocalPosition(this.position);
     this.root.setLocalEulerAngles(0, this.yaw, 0);
     this.pitchPivot.setLocalEulerAngles(-this.pitch - this.recoilPitch, 0, 0);
+    this.camera.camera!.fov = damp(this.camera.camera!.fov, targetFov, 16, dt);
     this.camera.setLocalPosition(
-      this.bobX * 0.1,
-      GAME_CONFIG.player.eyeHeight + breathing + this.bobY - this.landingKick * 0.12,
+      this.bobX * 0.1 * aimBobScale,
+      GAME_CONFIG.player.eyeHeight + breathing + this.bobY * aimBobScale - this.landingKick * 0.12,
       0
     );
     this.camera.setLocalEulerAngles(0, this.recoilYaw * 0.4, cameraRoll);

@@ -55,6 +55,7 @@ The repo root `index.html` is a redirect shim. The actual Vite app entry lives a
 - `Ctrl`: walk
 - `Shift`: sprint
 - `Space`: jump
+- `Right mouse`: focused aim / walk-only ADS
 - `Mouse`: look / fire
 - `R`: reload
 - `V`: press-check
