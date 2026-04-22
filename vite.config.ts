@@ -5,7 +5,14 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "./",
   build: {
-    chunkSizeWarningLimit: 2400
+    chunkSizeWarningLimit: 2400,
+    emptyOutDir: true,
+    outDir: "site",
+    rollupOptions: {
+      input: {
+        index: fileURLToPath(new URL("./app.html", import.meta.url))
+      }
+    }
   },
   resolve: {
     alias: {

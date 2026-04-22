@@ -29,6 +29,8 @@
    npm run build
    ```
 
+   The production site is emitted to `site/`.
+
 4. Preview the production build:
 
    ```bash
@@ -42,10 +44,11 @@
    ```
 
 The Vite config is set to emit relative asset URLs so the production build works both locally and on repo-hosted GitHub Pages URLs such as `/game/`.
+The repo root [index.html](./index.html) redirects to [app.html](./app.html) for local development and to the committed `site/` build for branch-hosted GitHub Pages deployments.
 
 ## GitHub Pages
 
-The repository includes [/.github/workflows/deploy-pages.yml](./.github/workflows/deploy-pages.yml) so pushes to `main` build the Vite app and deploy the generated `dist/` bundle to GitHub Pages. If the repository Pages settings are still pointing at `main` branch files, switch them to `GitHub Actions` so Pages serves the built app instead of the raw TypeScript source.
+The repository includes [/.github/workflows/deploy-pages.yml](./.github/workflows/deploy-pages.yml) so pushes to `main` build the Vite app and deploy the generated `site/` bundle to GitHub Pages. If the repository Pages settings are still pointing at `main` branch files, the root redirect will forward visitors to the committed production build in `site/`.
 
 ## Controls
 
