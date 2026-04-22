@@ -1,4 +1,4 @@
-import * as pc from "playcanvas";
+import * as pc from "https://cdn.jsdelivr.net/npm/playcanvas/+esm";
 
 const canvas = document.getElementById("application");
 const introCard = document.getElementById("intro-card");
@@ -460,7 +460,8 @@ const state = {
 
 const input = {
   keys: new Set(),
-  locked: false
+  locked: false,
+  usingFallbackAim: false
 };
 
 let audioContext = null;
@@ -524,9 +525,41 @@ function setEngagedUI(engaged) {
   }
 }
 
+function enableFallbackAim() {
+  if (input.usingFallbackAim) {
+    return;
+  }
+
+  input.usingFallbackAim = true;
+  setEngagedUI(true);
+  setStatus(
+    "Fallback aim",
+    "Pointer lock is unavailable here. Move the mouse over the page to look around, and press Esc to pause.",
+    1.8
+  );
+}
+
 function requestPointerLock() {
   ensureAudio();
-  canvas.requestPointerLock();
+
+  if (typeof canvas.requestPointerLock !== "function") {
+    enableFallbackAim();
+    return;
+  }
+
+  const maybePromise = canvas.requestPointerLock();
+
+  if (maybePromise && typeof maybePromise.catch === "function") {
+    maybePromise.catch(() => {
+      enableFallbackAim();
+    });
+  }
+
+  window.setTimeout(() => {
+    if (!input.locked && !input.usingFallbackAim) {
+      enableFallbackAim();
+    }
+  }, 280);
 }
 
 engageButton.addEventListener("click", requestPointerLock);
@@ -543,7 +576,12 @@ document.addEventListener("pointerlockchange", () => {
     input.keys.clear();
   }
 
-  setEngagedUI(document.pointerLockElement === canvas);
+  if (document.pointerLockElement === canvas) {
+    input.usingFallbackAim = false;
+    setEngagedUI(true);
+  } else if (!input.usingFallbackAim) {
+    setEngagedUI(false);
+  }
 });
 
 window.addEventListener("blur", () => {
@@ -551,6 +589,13 @@ window.addEventListener("blur", () => {
 });
 
 document.addEventListener("keydown", (event) => {
+  if (event.code === "Escape" && input.usingFallbackAim) {
+    input.keys.clear();
+    input.usingFallbackAim = false;
+    setEngagedUI(false);
+    return;
+  }
+
   input.keys.add(event.code);
 });
 

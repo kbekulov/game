@@ -12,13 +12,6 @@
       content="A lightweight first-person shooter tech demo built with the PlayCanvas Engine."
     >
     <link rel="stylesheet" href="styles.css">
-    <script type="importmap">
-      {
-        "imports": {
-          "playcanvas": "https://cdn.jsdelivr.net/npm/playcanvas/+esm"
-        }
-      }
-    </script>
   </head>
   <body>
     <canvas id="application" aria-label="PlayCanvas first person shooter demo"></canvas>
@@ -50,8 +43,8 @@
       </div>
 
       <div class="status-line">
-        <span id="status-pill">Arena live</span>
-        <span id="status-text">Click to lock in, sweep the room, and pop the drones.</span>
+        <span id="status-pill">Loading</span>
+        <span id="status-text">Starting the PlayCanvas scene...</span>
       </div>
 
       <div class="controls-panel">
@@ -87,6 +80,29 @@
 
     <div class="screen-flash" id="screen-flash" aria-hidden="true"></div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module">
+      const statusPill = document.getElementById("status-pill");
+      const statusText = document.getElementById("status-text");
+      const introCard = document.getElementById("intro-card");
+
+      import("./main.js").catch((error) => {
+        console.error("Failed to boot Prism Protocol", error);
+
+        statusPill.textContent = "Boot error";
+        statusText.textContent = "The demo failed to start. Refresh once, then open the browser console if it happens again.";
+
+        if (introCard) {
+          const existing = document.getElementById("boot-error");
+
+          if (!existing) {
+            const message = document.createElement("p");
+            message.id = "boot-error";
+            message.className = "boot-error";
+            message.textContent = `Startup error: ${error?.message || error}`;
+            introCard.appendChild(message);
+          }
+        }
+      });
+    </script>
   </body>
 </html>
