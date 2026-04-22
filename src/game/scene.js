@@ -982,7 +982,7 @@ export const buildScene = (app) => {
     fov: 72
   });
   cameraRig.addChild(camera);
-  const viewModel = createViewModel(camera);
+  const viewModel = createViewModel(app, camera);
   app.root.addChild(playerRig);
 
   const duskLight = new pc.Entity("dusk-light");
@@ -1074,7 +1074,12 @@ export const buildScene = (app) => {
     receiveShadows: false
   });
 
-  const environmentReady = enhanceForestEnvironment(app, { groundEntity: ground });
+  const environmentReady = Promise.all([
+    enhanceForestEnvironment(app, { groundEntity: ground }),
+    viewModel.readyPromise ?? Promise.resolve({ failedCount: 0 })
+  ]).then((results) => ({
+    failedCount: results.reduce((total, result) => total + (result.failedCount ?? 0), 0)
+  }));
 
   const landmarkVectors = FOREST_LANDMARKS.map((landmark) => ({
     ...landmark,

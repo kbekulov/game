@@ -37,6 +37,7 @@ export class PlayerController {
     this.stepPhase = 0;
     this.landingBounce = 0;
     this.lookSway = new pc.Vec2();
+    this.weaponLower = 0;
     this.viewModelBasePosition = viewModel.getLocalPosition().clone();
     this.viewModelBaseRotation = viewModel.getLocalEulerAngles().clone();
 
@@ -134,6 +135,11 @@ export class PlayerController {
     }
 
     this.landingBounce = pc.math.lerp(this.landingBounce, 0, 1 - Math.exp(-dt * 11));
+    this.weaponLower = pc.math.lerp(
+      this.weaponLower,
+      isSprinting ? 1 : 0,
+      1 - Math.exp(-dt * 9)
+    );
 
     const sway = Math.sin(this.stepPhase);
     const lift = 0.5 - 0.5 * Math.cos(this.stepPhase * 2);
@@ -150,14 +156,14 @@ export class PlayerController {
     );
 
     this.viewModel.setLocalPosition(
-      this.viewModelBasePosition.x + sway * STEP_BOB_X * this.walkBlend * 0.95 + this.lookSway.x * 0.9,
-      this.viewModelBasePosition.y - lift * STEP_BOB_Y * this.walkBlend * 0.72 - this.landingBounce * 0.82 + this.lookSway.y * 0.55,
-      this.viewModelBasePosition.z + lift * 0.018 * this.walkBlend
+      this.viewModelBasePosition.x + sway * STEP_BOB_X * this.walkBlend * 0.42 + this.lookSway.x * 0.34 - this.weaponLower * 0.14,
+      this.viewModelBasePosition.y - lift * STEP_BOB_Y * this.walkBlend * 0.52 - this.landingBounce * 0.82 + this.lookSway.y * 0.2 - this.weaponLower * 0.16,
+      this.viewModelBasePosition.z + lift * 0.012 * this.walkBlend + this.weaponLower * 0.12
     );
     this.viewModel.setLocalEulerAngles(
-      this.viewModelBaseRotation.x + Math.sin(this.stepPhase * 2) * STEP_BOB_PITCH * this.walkBlend * 3.2 + this.lookSway.y * 52,
-      this.viewModelBaseRotation.y - this.lookSway.x * 40,
-      this.viewModelBaseRotation.z + sway * STEP_BOB_ROLL * this.walkBlend * 2.7 - this.lookSway.x * 58
+      this.viewModelBaseRotation.x + Math.sin(this.stepPhase * 2) * STEP_BOB_PITCH * this.walkBlend * 1.8 + this.lookSway.y * 22 + this.weaponLower * 16,
+      this.viewModelBaseRotation.y - this.lookSway.x * 18 + this.weaponLower * 8,
+      this.viewModelBaseRotation.z + sway * STEP_BOB_ROLL * this.walkBlend * 1.15 - this.lookSway.x * 22 + this.weaponLower * 14
     );
   }
 

@@ -42,8 +42,8 @@ const syncHud = () => {
   if (environmentState.loading) {
     hud.setStatus(
       isPointerLocked()
-        ? "The grove is taking shape. Higher-fidelity sky and forest detail are still streaming in."
-        : "Higher-fidelity sky and forest detail are still loading. Click the viewport to enter when you're ready."
+        ? "The grove is taking shape. Higher-fidelity sky, forest detail, and sidearm assets are still streaming in."
+        : "Higher-fidelity sky, forest detail, and sidearm assets are still loading. Click the viewport to enter when you're ready."
     );
     return;
   }

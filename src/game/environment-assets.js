@@ -249,6 +249,97 @@ const createDuskSkydome = async (app) => {
   applyMaterialToHierarchy(skydome, material);
 };
 
+const createSunShaftTexture = (app) => {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return null;
+  }
+
+  const gradient = context.createLinearGradient(0, 0, 0, size);
+  gradient.addColorStop(0, "rgba(255, 246, 220, 0)");
+  gradient.addColorStop(0.18, "rgba(255, 240, 180, 0.75)");
+  gradient.addColorStop(0.52, "rgba(255, 186, 92, 0.34)");
+  gradient.addColorStop(1, "rgba(255, 140, 48, 0)");
+
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, size, size);
+
+  const texture = new pc.Texture(app.graphicsDevice, {
+    width: size,
+    height: size,
+    mipmaps: false
+  });
+  texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+  texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+  texture.minFilter = pc.FILTER_LINEAR;
+  texture.magFilter = pc.FILTER_LINEAR;
+  texture.setSource(canvas);
+
+  return texture;
+};
+
+const createSunShaftMaterial = (app) => {
+  const texture = createSunShaftTexture(app);
+
+  return createMaterialVariant((material) => {
+    material.useLighting = false;
+    material.useFog = false;
+    material.diffuse = new pc.Color(0, 0, 0);
+    material.emissive = new pc.Color(1, 0.62, 0.22);
+    material.emissiveIntensity = 1.4;
+    material.opacity = 0.88;
+    material.blendType = pc.BLEND_ADDITIVEALPHA;
+    material.depthWrite = false;
+    material.cull = pc.CULLFACE_NONE;
+
+    if (texture) {
+      material.emissiveMap = texture;
+      material.opacityMap = texture;
+      material.opacityMapChannel = "a";
+    }
+  });
+};
+
+const addSunShafts = (app, parent) => {
+  const material = createSunShaftMaterial(app);
+  const shaftsRoot = new pc.Entity("sun-shafts");
+  parent.addChild(shaftsRoot);
+
+  const placements = [
+    { x: -240, z: 236, width: 10, height: 34, yaw: 58, tilt: -8, lift: 13.5 },
+    { x: -214, z: 212, width: 9, height: 30, yaw: 54, tilt: -6, lift: 12.8 },
+    { x: -176, z: 186, width: 8, height: 28, yaw: 51, tilt: -4, lift: 11.9 },
+    { x: -136, z: 156, width: 8, height: 26, yaw: 50, tilt: -5, lift: 11.4 },
+    { x: -98, z: 132, width: 7, height: 24, yaw: 47, tilt: -4, lift: 10.8 },
+    { x: -48, z: 102, width: 7, height: 22, yaw: 44, tilt: -3, lift: 10.4 },
+    { x: 8, z: 82, width: 7, height: 21, yaw: 40, tilt: -2, lift: 10.2 },
+    { x: 78, z: 142, width: 6.5, height: 21, yaw: 38, tilt: -1, lift: 10 },
+    { x: 126, z: 182, width: 6, height: 19, yaw: 34, tilt: 0, lift: 9.6 }
+  ];
+
+  for (const [index, placement] of placements.entries()) {
+    createSceneChild(shaftsRoot, {
+      name: `sun-shaft-${index + 1}`,
+      type: "plane",
+      material,
+      position: [
+        placement.x,
+        sampleTerrainHeight(placement.x, placement.z) + placement.lift,
+        placement.z
+      ],
+      rotation: [90 + placement.tilt, placement.yaw, 0],
+      scale: [placement.width, placement.height, 1],
+      castShadows: false,
+      receiveShadows: false
+    });
+  }
+};
+
 const createForestMaterials = async (app) => {
   const [
     barkDiffuseAsset,
@@ -1071,6 +1162,7 @@ export const enhanceForestEnvironment = async (app, { groundEntity }) => {
   const results = await Promise.allSettled([
     createDuskSkydome(app),
     applyGroundDetail(app, groundEntity),
+    addSunShafts(app, detailRoot),
     addGroundProps(app, detailRoot),
     addModeledForest(app, detailRoot)
   ]);
