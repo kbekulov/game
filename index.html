@@ -85,7 +85,7 @@
       const statusText = document.getElementById("status-text");
       const introCard = document.getElementById("intro-card");
 
-      import("./main.js").catch((error) => {
+      import("./main.js?v=2026-04-23-2").catch((error) => {
         console.error("Failed to boot Prism Protocol", error);
 
         statusPill.textContent = "Boot error";
