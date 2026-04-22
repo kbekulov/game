@@ -1,6 +1,7 @@
 import * as pc from "playcanvas";
 
 import { FOREST_HALF_EXTENT, FOREST_LANDMARKS, FOREST_PATHS } from "./config.js";
+import { addRealisticForestModels } from "./forest-tree-system.js";
 import { sampleTerrainHeight, sampleTerrainNormal } from "./terrain.js";
 
 const LANDMARK_POSITIONS = new Map(
@@ -692,11 +693,12 @@ const cloneTemplate = (template, parent, placement) => {
   parent.addChild(entity);
   const groundHeight = sampleTerrainHeight(placement.x, placement.z);
   const slopeNormal = sampleTerrainNormal(placement.x, placement.z);
+  const slopeTiltStrength = placement.slopeTiltStrength ?? 1.8;
   entity.setLocalPosition(placement.x, groundHeight + (placement.y ?? 0), placement.z);
   entity.setLocalEulerAngles(
-    (placement.tiltX ?? 0) + slopeNormal.z * 7.5,
+    (placement.tiltX ?? 0) + slopeNormal.z * slopeTiltStrength,
     placement.rotationY ?? 0,
-    (placement.tiltZ ?? 0) - slopeNormal.x * 7.5
+    (placement.tiltZ ?? 0) - slopeNormal.x * slopeTiltStrength
   );
   entity.setLocalScale(placement.scale, placement.scale, placement.scale);
   configureRenderHierarchy(
@@ -1158,13 +1160,17 @@ const addGroundProps = async (app, parent) => {
 export const enhanceForestEnvironment = async (app, { groundEntity }) => {
   const detailRoot = new pc.Entity("forest-detail-assets");
   app.root.addChild(detailRoot);
+  const forestTreesPromise = addRealisticForestModels(app, detailRoot).catch((error) => {
+    console.warn(error);
+    return addModeledForest(app, detailRoot);
+  });
 
   const results = await Promise.allSettled([
     createDuskSkydome(app),
     applyGroundDetail(app, groundEntity),
     addSunShafts(app, detailRoot),
     addGroundProps(app, detailRoot),
-    addModeledForest(app, detailRoot)
+    forestTreesPromise
   ]);
 
   const failed = results.filter((result) => result.status === "rejected");
