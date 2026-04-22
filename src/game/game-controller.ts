@@ -92,8 +92,11 @@ export class GameController {
 
   private createApp(): pc.Application {
     const app = new pc.Application(this.canvas, {
-      mouse: new pc.Mouse(document.body),
-      touch: new pc.TouchDevice(document.body)
+      mouse: new pc.Mouse(this.canvas),
+      touch:
+        "ontouchstart" in window || navigator.maxTouchPoints > 0
+          ? new pc.TouchDevice(this.canvas)
+          : undefined
     });
 
     app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
@@ -267,13 +270,13 @@ export class GameController {
   }
 
   private loadSettings(): RuntimeSettings {
-    const raw = window.localStorage.getItem(STORAGE_KEYS.settings);
-
-    if (!raw) {
-      return { ...DEFAULT_SETTINGS };
-    }
-
     try {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.settings);
+
+      if (!raw) {
+        return { ...DEFAULT_SETTINGS };
+      }
+
       const parsed = JSON.parse(raw) as Partial<RuntimeSettings>;
       return {
         mouseSensitivity: clamp(parsed.mouseSensitivity ?? DEFAULT_SETTINGS.mouseSensitivity, 0.5, 2),
@@ -285,6 +288,10 @@ export class GameController {
   }
 
   private persistSettings(): void {
-    window.localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(this.settings));
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(this.settings));
+    } catch {
+      // Ignore storage failures in private / restricted browsing modes.
+    }
   }
 }
