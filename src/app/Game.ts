@@ -8,10 +8,11 @@ import { EnvironmentBuilder, WorldScene } from "../world/environment";
 import { PlayerController } from "../player/controller";
 import { PistolWeapon } from "../player/weapon";
 import { EnemyDrone } from "../gameplay/enemy";
+import { WorldPickup } from "../gameplay/pickup";
 import { Hud } from "../ui/hud";
-import { damp } from "../core/math";
+import { damp, randRange } from "../core/math";
 
-type GameState = "intro" | "playing" | "win" | "lose";
+type GameState = "intro" | "playing" | "lose";
 
 interface BeamEffect {
   readonly entity: pc.Entity;
@@ -30,6 +31,8 @@ export class Game {
   private readonly player: PlayerController;
   private readonly weapon: PistolWeapon;
   private readonly enemies: EnemyDrone[] = [];
+  private readonly activeEnemies: EnemyDrone[] = [];
+  private readonly pickups: WorldPickup[] = [];
   private readonly effectsRoot: pc.Entity;
   private readonly beamEffects: BeamEffect[] = [];
   private readonly playerBeamMaterial: pc.StandardMaterial;
@@ -37,6 +40,8 @@ export class Game {
 
   private state: GameState = "intro";
   private reticleKick = 0;
+  private waveNumber = 0;
+  private nextWaveTimer = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -95,7 +100,7 @@ export class Game {
       return;
     }
 
-    if (this.state === "win" || this.state === "lose") {
+    if (this.state === "lose") {
       if (this.input.wasActionPressed("restart")) {
         this.startPlaying();
       }
@@ -155,7 +160,7 @@ export class Game {
 
     const playerEye = this.player.getEyePosition();
 
-    for (const enemy of this.enemies) {
+    for (const enemy of this.activeEnemies) {
       const enemyShot = enemy.update(dt, playerEye, this.world.terrain, this.collision);
 
       if (enemyShot) {
@@ -163,41 +168,28 @@ export class Game {
       }
     }
 
-    this.updateHud(playerFrame.movementState, playerFrame.aiming);
+    this.updatePickups(dt);
 
     if (!this.player.isAlive()) {
       this.state = "lose";
       this.hud.showResult(
         true,
         "Mission Failed",
-        "You were dropped in the meadow.",
-        "Press restart or tap R to run the slice again."
+        `Wave ${Math.max(1, this.waveNumber)} broke through your position.`,
+        "Press restart or tap R to drop back into the meadow."
       );
-    } else if (this.enemies.every((enemy) => !enemy.isAlive())) {
-      this.state = "win";
-      this.hud.showResult(
-        true,
-        "Mission Clear",
-        "The meadow is secure.",
-        "Press restart or tap R to reset the vertical slice."
-      );
+      this.input.endFrame();
+      return;
     }
 
+    this.updateWaveDirector(dt);
+    this.updateHud(playerFrame.movementState, playerFrame.aiming);
     this.input.endFrame();
   };
 
   private resetMission(): void {
-    this.player.reset(this.world.playerSpawn);
-    this.weapon.reset();
-
-    this.enemies.forEach((enemy, index) => {
-      enemy.reset(this.world.enemySpawns[index]);
-    });
-
-    this.beamEffects.splice(0).forEach((effect) => effect.entity.destroy());
+    this.prepareFreshRun();
     this.state = "intro";
-    this.reticleKick = 0;
-    this.updateHud("idle", false);
   }
 
   private startPlaying(): void {
@@ -210,21 +202,109 @@ export class Game {
   }
 
   private resetPlayableState(): void {
+    this.prepareFreshRun();
+    this.hud.setObjective(this.getWaveObjective());
+    this.updateHud("idle", false);
+  }
+
+  private prepareFreshRun(): void {
     this.player.reset(this.world.playerSpawn);
     this.weapon.reset();
-    this.enemies.forEach((enemy, index) => {
-      enemy.reset(this.world.enemySpawns[index]);
+    this.waveNumber = 0;
+    this.nextWaveTimer = 0;
+    this.reticleKick = 0;
+    this.activeEnemies.splice(0, this.activeEnemies.length);
+    this.enemies.forEach((enemy) => enemy.setDormant());
+    this.clearPickups();
+    this.clearBeams();
+    this.spawnNextWave();
+  }
+
+  private spawnNextWave(): void {
+    this.waveNumber += 1;
+    this.nextWaveTimer = 0;
+
+    const waveSize = Math.min(
+      GAME_CONFIG.waves.startCount + (this.waveNumber - 1) * GAME_CONFIG.waves.countGrowth,
+      GAME_CONFIG.waves.maxCount
+    );
+    const playerPosition = this.player.getPosition();
+
+    this.ensureEnemyPool(waveSize);
+    this.activeEnemies.splice(0, this.activeEnemies.length, ...this.enemies.slice(0, waveSize));
+
+    this.activeEnemies.forEach((enemy, index) => {
+      enemy.reset(this.selectWaveSpawn(index, playerPosition));
     });
-    this.beamEffects.splice(0).forEach((effect) => effect.entity.destroy());
-    this.hud.setObjective(GAME_CONFIG.world.objectiveText);
-    this.updateHud("idle", false);
+
+    for (let index = waveSize; index < this.enemies.length; index += 1) {
+      this.enemies[index].setDormant();
+    }
+
+    this.hud.setObjective(this.getWaveObjective());
+  }
+
+  private ensureEnemyPool(size: number): void {
+    while (this.enemies.length < size) {
+      const baseSpawn = this.world.enemySpawns[this.enemies.length % this.world.enemySpawns.length];
+      this.enemies.push(new EnemyDrone(this.app, this.world.root, baseSpawn));
+    }
+  }
+
+  private selectWaveSpawn(index: number, playerPosition: pc.Vec3): pc.Vec3 {
+    const minDistance = GAME_CONFIG.waves.minPlayerDistance;
+    let bestCandidate = this.world.enemySpawns[index % this.world.enemySpawns.length].clone();
+    let bestDistance = -Infinity;
+
+    for (let attempt = 0; attempt < this.world.enemySpawns.length * 4; attempt += 1) {
+      const baseSpawn = this.world.enemySpawns[(index + attempt) % this.world.enemySpawns.length];
+      const angle = randRange(0, Math.PI * 2);
+      const radius = Math.sqrt(Math.random()) * GAME_CONFIG.waves.spawnOffsetRadius;
+      const x = baseSpawn.x + Math.cos(angle) * radius;
+      const z = baseSpawn.z + Math.sin(angle) * radius;
+      const candidate = new pc.Vec3(x, this.world.terrain.heightAt(x, z) + 0.1, z);
+      const distance = candidate.distance(playerPosition);
+
+      if (distance >= minDistance) {
+        return candidate;
+      }
+
+      if (distance > bestDistance) {
+        bestDistance = distance;
+        bestCandidate = candidate;
+      }
+    }
+
+    return bestCandidate;
+  }
+
+  private updateWaveDirector(dt: number): void {
+    const aliveTargets = this.activeEnemies.filter((enemy) => enemy.isAlive()).length;
+
+    if (aliveTargets > 0 || this.activeEnemies.length === 0) {
+      this.nextWaveTimer = 0;
+      return;
+    }
+
+    if (this.nextWaveTimer <= 0) {
+      this.nextWaveTimer = GAME_CONFIG.waves.intermission;
+      this.hud.setObjective(
+        `Wave ${this.waveNumber} cleared. Sweep the drops and brace for the next push.`
+      );
+    }
+
+    this.nextWaveTimer = Math.max(0, this.nextWaveTimer - dt);
+
+    if (this.nextWaveTimer <= 0.001) {
+      this.spawnNextWave();
+    }
   }
 
   private handlePlayerShot(origin: pc.Vec3, direction: pc.Vec3, maxDistance: number): void {
     let closestEnemy: EnemyDrone | null = null;
     let closestDistance = maxDistance;
 
-    for (const enemy of this.enemies) {
+    for (const enemy of this.activeEnemies) {
       const hitDistance = enemy.raycast(origin, direction, maxDistance);
 
       if (hitDistance === null || hitDistance >= closestDistance) {
@@ -249,9 +329,14 @@ export class Game {
 
     if (closestEnemy) {
       const hitPoint = origin.clone().add(direction.clone().mulScalar(closestDistance));
-      closestEnemy.applyDamage();
+      const destroyed = closestEnemy.applyDamage();
       this.audio.playHitConfirm();
       this.spawnBeam(origin, hitPoint, this.playerBeamMaterial, 0.08, 0.04);
+
+      if (destroyed) {
+        this.trySpawnPickup(closestEnemy.getPosition());
+      }
+
       return;
     }
 
@@ -262,6 +347,49 @@ export class Game {
       this.world.terrain.heightAt.bind(this.world.terrain)
     );
     this.spawnBeam(origin, worldImpact, this.playerBeamMaterial, 0.07, 0.03);
+  }
+
+  private trySpawnPickup(position: pc.Vec3): void {
+    if (Math.random() > GAME_CONFIG.pickups.dropChance) {
+      return;
+    }
+
+    const type = Math.random() < GAME_CONFIG.pickups.healthChance ? "health" : "ammo";
+    const groundedPosition = new pc.Vec3(
+      position.x,
+      this.world.terrain.heightAt(position.x, position.z) + 0.08,
+      position.z
+    );
+
+    this.pickups.push(new WorldPickup(this.world.root, type, groundedPosition));
+  }
+
+  private updatePickups(dt: number): void {
+    const playerPosition = this.player.getPosition();
+
+    for (let index = this.pickups.length - 1; index >= 0; index -= 1) {
+      const pickup = this.pickups[index];
+
+      if (pickup.update(dt)) {
+        this.pickups.splice(index, 1);
+        continue;
+      }
+
+      if (!pickup.canCollect(playerPosition)) {
+        continue;
+      }
+
+      const collected = pickup.type === "ammo"
+        ? this.weapon.addReserveAmmo(GAME_CONFIG.pickups.ammoAmount) > 0
+        : this.player.heal(GAME_CONFIG.pickups.healthAmount) > 0;
+
+      if (!collected) {
+        continue;
+      }
+
+      pickup.destroy();
+      this.pickups.splice(index, 1);
+    }
   }
 
   private handleEnemyShot(origin: pc.Vec3, target: pc.Vec3, damage: number): void {
@@ -285,21 +413,33 @@ export class Game {
   }
 
   private updateHud(movementState: string, aiming: boolean): void {
-    const aliveTargets = this.enemies.filter((enemy) => enemy.isAlive()).length;
+    const aliveTargets = this.activeEnemies.filter((enemy) => enemy.isAlive()).length;
     const weaponState = this.weapon.getActionLabel();
-    const statusText = aiming && weaponState === "Ready"
-      ? "Focused aim"
-      : movementState === "idle"
-        ? weaponState
-        : movementState;
+    const betweenWaves = this.nextWaveTimer > 0 && aliveTargets === 0;
+    const statusText = betweenWaves
+      ? "Resupply window"
+      : aiming && weaponState === "Ready"
+        ? "Focused aim"
+        : movementState === "idle"
+          ? weaponState
+          : movementState;
+
     this.hud.setHealth(this.player.getHealth());
-    this.hud.setTargets(aliveTargets, this.enemies.length);
+    this.hud.setTargets(aliveTargets, this.activeEnemies.length);
     this.hud.setAmmo(
       this.weapon.getAmmo(),
       this.weapon.getReserveAmmo(),
-      aiming && weaponState === "Ready" ? "Focused aim active" : weaponState
+      betweenWaves
+        ? `Wave ${this.waveNumber + 1} inbound`
+        : aiming && weaponState === "Ready"
+          ? "Focused aim active"
+          : weaponState
     );
     this.hud.setState(statusText);
+  }
+
+  private getWaveObjective(): string {
+    return `Wave ${this.waveNumber}: ${GAME_CONFIG.world.objectiveText}`;
   }
 
   private spawnBeam(
@@ -343,6 +483,14 @@ export class Game {
         this.beamEffects.splice(index, 1);
       }
     }
+  }
+
+  private clearBeams(): void {
+    this.beamEffects.splice(0).forEach((effect) => effect.entity.destroy());
+  }
+
+  private clearPickups(): void {
+    this.pickups.splice(0).forEach((pickup) => pickup.destroy());
   }
 
   private createBeamMaterial(

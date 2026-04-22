@@ -21,7 +21,7 @@ export class EnemyDrone {
   private readonly body: pc.Entity;
   private readonly meshMaterial: pc.StandardMaterial;
   private readonly ringMaterial: pc.StandardMaterial;
-  private health = GAME_CONFIG.enemies.health;
+  private health: number = GAME_CONFIG.enemies.health;
   private active = true;
   private phase = randRange(0, Math.PI * 2);
   private shotTimer = randRange(
@@ -103,6 +103,7 @@ export class EnemyDrone {
     this.anchor.copy(spawn);
     this.position.copy(spawn);
     this.root.setLocalPosition(this.position);
+    this.root.setLocalScale(1, 1, 1);
     this.health = GAME_CONFIG.enemies.health;
     this.active = true;
     this.damageFlash = 0;
@@ -113,6 +114,16 @@ export class EnemyDrone {
       GAME_CONFIG.enemies.shotIntervalMax
     );
     this.root.enabled = true;
+    this.updateMaterials();
+  }
+
+  setDormant(): void {
+    this.active = false;
+    this.health = 0;
+    this.damageFlash = 0;
+    this.collapse = 0;
+    this.root.enabled = false;
+    this.root.setLocalScale(1, 1, 1);
     this.updateMaterials();
   }
 
@@ -247,6 +258,10 @@ export class EnemyDrone {
 
   isAlive(): boolean {
     return this.active;
+  }
+
+  getPosition(): pc.Vec3 {
+    return this.position.clone();
   }
 
   private updateMaterials(): void {

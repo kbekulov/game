@@ -283,6 +283,12 @@ export class PlayerController {
     return this.health;
   }
 
+  heal(amount: number): number {
+    const previous = this.health;
+    this.health = Math.min(GAME_CONFIG.player.health, this.health + amount);
+    return this.health - previous;
+  }
+
   getHealth(): number {
     return this.health;
   }

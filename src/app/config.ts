@@ -4,7 +4,7 @@ export const GAME_CONFIG = {
     terrainResolution: 112,
     fogStart: 42,
     fogEnd: 98,
-    objectiveText: "Clear the meadow drones and survive the patrol.",
+    objectiveText: "Hold the meadow through endless drone waves and grab dropped supplies.",
     playerSpawn: { x: -27.5, z: 21.5 },
     enemySpawns: [
       { x: 14, z: 15 },
@@ -12,6 +12,14 @@ export const GAME_CONFIG = {
       { x: -17, z: -11 },
       { x: 1, z: 10 }
     ]
+  },
+  waves: {
+    startCount: 4,
+    countGrowth: 1,
+    maxCount: 10,
+    intermission: 2.8,
+    spawnOffsetRadius: 6,
+    minPlayerDistance: 14
   },
   player: {
     fov: 74,
@@ -49,12 +57,21 @@ export const GAME_CONFIG = {
     range: 72,
     damage: 1,
     fireInterval: 0.12,
+    maxReserveAmmo: 170,
     reloadDuration: 1.48,
     emptyReloadDuration: 1.92,
     pressCheckDuration: 0.9,
     dryFireDuration: 0.18,
     recoilPitch: 1.4,
     recoilYaw: 0.5
+  },
+  pickups: {
+    ammoAmount: 17,
+    healthAmount: 28,
+    dropChance: 0.34,
+    healthChance: 0.4,
+    pickupRadius: 1.2,
+    lifetime: 18
   },
   enemies: {
     health: 3,

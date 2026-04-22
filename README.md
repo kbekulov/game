@@ -10,9 +10,10 @@ Greenfire Range is a compact playable 3D first-person shooter vertical slice bui
   - idle, walk, jog, sprint, and airborne poses
   - fire, reload, empty reload, press-check, and dry fire actions
   - head bob, sprint low-ready pose, landing dip, and light recoil/camera kick
-- Four hovering drones with patrol, aggro, chase-orbit, and shooting behavior
+- Endless drone waves with patrol, aggro, chase-orbit, and shooting behavior
+- Ammo and health pickups that occasionally drop from destroyed drones
 - HUD with health, target count, ammo, and state feedback
-- Win/lose loop with restart flow
+- Survival loop with restart flow after being overrun
 - Procedural audio for gunshots, reloads, dry fire, footsteps, enemy shots, damage feedback, and ambient meadow wind/birds
 
 ## Setup
@@ -80,6 +81,7 @@ src/
     input.ts
   gameplay/
     enemy.ts
+    pickup.ts
   player/
     controller.ts
     weapon.ts

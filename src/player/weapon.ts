@@ -226,6 +226,15 @@ export class PistolWeapon {
     return this.reserveAmmo;
   }
 
+  addReserveAmmo(amount: number): number {
+    const previous = this.reserveAmmo;
+    this.reserveAmmo = Math.min(
+      GAME_CONFIG.weapon.maxReserveAmmo,
+      this.reserveAmmo + amount
+    );
+    return this.reserveAmmo - previous;
+  }
+
   getActionLabel(): string {
     if (this.action) {
       return this.actionLabel;
