@@ -23,22 +23,20 @@ const app = new pc.Application(canvas, {
 
 app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
 app.setCanvasResolution(pc.RESOLUTION_AUTO);
-app.graphicsDevice.maxPixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
 app.start();
 
 const world = new pc.Entity("world");
 app.root.addChild(world);
 
-app.scene.ambientLight = new pc.Color(0.18, 0.22, 0.3);
+app.scene.ambientLight.set(0.18, 0.22, 0.3);
 app.scene.fog = pc.FOG_LINEAR;
-app.scene.fogColor = new pc.Color(0.03, 0.05, 0.08);
+app.scene.fogColor.set(0.03, 0.05, 0.08);
 app.scene.fogStart = 26;
 app.scene.fogEnd = 74;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const lerp = (a, b, t) => a + (b - a) * t;
 const rad = (degrees) => degrees * (Math.PI / 180);
-const toColor = ([r, g, b]) => new pc.Color(r, g, b);
 
 function createMaterial({
   diffuse,
@@ -49,8 +47,8 @@ function createMaterial({
   opacity = 1
 }) {
   const material = new pc.StandardMaterial();
-  material.diffuse = toColor(diffuse);
-  material.emissive = toColor(emissive);
+  material.diffuse.set(...diffuse);
+  material.emissive.set(...emissive);
   material.emissiveIntensity = emissiveIntensity;
   material.useMetalness = true;
   material.metalness = metalness;
