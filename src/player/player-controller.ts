@@ -87,6 +87,21 @@ export class PlayerController {
       jumpTriggered: false,
       landingIntensity: 0
     };
+
+    const ground = this.world.findGround(
+      this.position.x,
+      this.position.z,
+      this.position.y + PLAYER_CONFIG.stepHeight + 1,
+      PLAYER_CONFIG.radius,
+      PLAYER_CONFIG.height + PLAYER_CONFIG.stepHeight + 2
+    );
+
+    if (ground) {
+      this.position.y = ground.height;
+      this.onGround = true;
+      this.currentSurface = ground.surface;
+    }
+
     this.applyTransforms();
   }
 

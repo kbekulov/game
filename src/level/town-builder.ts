@@ -725,7 +725,7 @@ export const buildTownLevel = (app: pc.Application): TownBuildResult => {
   });
 
   const playerSpawn: PlayerSpawn = {
-    x: -10.6,
+    x: -4.6,
     y: 0.01,
     z: -22.4,
     yaw: 24
