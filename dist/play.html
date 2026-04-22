@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+    <title>Greenfire Range</title>
+    <meta
+      name="description"
+      content="A polished PlayCanvas first-person shooter vertical slice set in a scenic meadow."
+    >
+    <script type="module" crossorigin src="./assets/play-DXk2js-D.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/play-Cohvh4cw.css">
+  </head>
+  <body>
+    <canvas id="application" aria-label="Greenfire Range game view"></canvas>
+
+    <div class="hud" id="hud">
+      <div class="top-bar">
+        <div class="brand-panel">
+          <p class="eyebrow">PlayCanvas Vertical Slice</p>
+          <h1>Greenfire Range</h1>
+          <p id="objective-text">Clear the meadow drones and survive the patrol.</p>
+        </div>
+
+        <div class="status-panel">
+          <div>
+            <span class="label">Health</span>
+            <strong id="health-value">100</strong>
+          </div>
+          <div>
+            <span class="label">Drones</span>
+            <strong id="targets-value">0 / 0</strong>
+          </div>
+          <div>
+            <span class="label">State</span>
+            <strong id="state-value">Ready</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="ammo-panel">
+        <span class="ammo-count" id="ammo-value">17</span>
+        <span class="ammo-divider">/</span>
+        <span class="reserve-count" id="reserve-value">68</span>
+        <p id="weapon-message">Press mouse button to fire.</p>
+      </div>
+
+      <div class="controls-panel">
+        <span><kbd>WASD</kbd> Move</span>
+        <span><kbd>Ctrl</kbd> Walk</span>
+        <span><kbd>Shift</kbd> Sprint</span>
+        <span><kbd>Space</kbd> Jump</span>
+        <span><kbd>R</kbd> Reload</span>
+        <span><kbd>V</kbd> Press-check</span>
+        <span><kbd>Mouse</kbd> Look / Fire</span>
+        <span><kbd>Esc</kbd> Release cursor</span>
+      </div>
+    </div>
+
+    <div class="reticle" id="reticle" aria-hidden="true">
+      <span class="reticle-line top"></span>
+      <span class="reticle-line bottom"></span>
+      <span class="reticle-line left"></span>
+      <span class="reticle-line right"></span>
+      <span class="reticle-dot"></span>
+    </div>
+
+    <div class="screen-flash" id="screen-flash" aria-hidden="true"></div>
+
+    <div class="overlay visible" id="intro-overlay">
+      <div class="overlay-card">
+        <p class="eyebrow">Scenic Tactical Slice</p>
+        <h2>Walk the meadow. Clear the drones. Keep the pistol smooth.</h2>
+        <p>
+          Greenfire Range is a compact outdoor FPS built with PlayCanvas, TypeScript,
+          npm, and Vite. The focus is deliberate first-person weapon handling, movement
+          feel, and a fully playable combat loop.
+        </p>
+        <button id="engage-button" type="button">Enter Range</button>
+        <p class="footnote">
+          Desktop with mouse and keyboard is the intended setup. Audio starts after you
+          enter the range.
+        </p>
+      </div>
+    </div>
+
+    <div class="overlay" id="result-overlay">
+      <div class="overlay-card compact">
+        <p class="eyebrow" id="result-eyebrow">Status</p>
+        <h2 id="result-title">Range reset</h2>
+        <p id="result-body">Press restart to drop back in.</p>
+        <div class="overlay-actions">
+          <button id="restart-button" type="button">Restart Mission</button>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

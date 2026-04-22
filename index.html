@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+    <title>Greenfire Range</title>
+    <meta
+      http-equiv="refresh"
+      content="0; url=./play.html"
+    >
+    <script>
+      const devHostnames = new Set(["localhost", "127.0.0.1"]);
+      const insideDist = window.location.pathname.includes("/dist/");
+      const nextPath = insideDist || devHostnames.has(window.location.hostname) || window.location.port
+        ? "./play.html"
+        : "./dist/play.html";
+
+      window.location.replace(nextPath);
+    </script>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #93c0dd, #7296b3);
+        color: #102126;
+        font-family: "Avenir Next", "Segoe UI", sans-serif;
+      }
+
+      p {
+        padding: 16px 20px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.68);
+        box-shadow: 0 14px 32px rgba(16, 33, 38, 0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <p>Redirecting to Greenfire Range…</p>
+  </body>
+</html>
