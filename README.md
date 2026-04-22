@@ -41,6 +41,12 @@
    npm run typecheck
    ```
 
+The Vite config is set to emit relative asset URLs so the production build works both locally and on repo-hosted GitHub Pages URLs such as `/game/`.
+
+## GitHub Pages
+
+The repository includes [/.github/workflows/deploy-pages.yml](./.github/workflows/deploy-pages.yml) so pushes to `main` build the Vite app and deploy the generated `dist/` bundle to GitHub Pages. If the repository Pages settings are still pointing at `main` branch files, switch them to `GitHub Actions` so Pages serves the built app instead of the raw TypeScript source.
+
 ## Controls
 
 - `WASD`: move
