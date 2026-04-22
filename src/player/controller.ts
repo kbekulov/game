@@ -97,7 +97,7 @@ export class PlayerController {
     if (input.isPointerLocked()) {
       this.yaw -= look.x * GAME_CONFIG.player.mouseSensitivity;
       this.pitch = clamp(
-        this.pitch - look.y * GAME_CONFIG.player.mouseSensitivity,
+        this.pitch + look.y * GAME_CONFIG.player.mouseSensitivity,
         -GAME_CONFIG.player.maxLookPitch,
         GAME_CONFIG.player.maxLookPitch
       );
@@ -122,8 +122,8 @@ export class PlayerController {
     const yawRadians = radians(this.yaw);
     const sinYaw = Math.sin(yawRadians);
     const cosYaw = Math.cos(yawRadians);
-    const worldMoveX = normalizedX * cosYaw + normalizedZ * sinYaw;
-    const worldMoveZ = normalizedZ * cosYaw - normalizedX * sinYaw;
+    const worldMoveX = normalizedX * cosYaw - normalizedZ * sinYaw;
+    const worldMoveZ = -normalizedX * sinYaw - normalizedZ * cosYaw;
     const desiredVelocityX = worldMoveX * stateSpeed;
     const desiredVelocityZ = worldMoveZ * stateSpeed;
     const acceleration = this.grounded
