@@ -1,35 +1,27 @@
 export const GAME_CONFIG = {
   world: {
-    terrainSize: 72,
-    terrainResolution: 112,
-    fogStart: 42,
-    fogEnd: 98,
-    objectiveText: "Hold the meadow through endless drone waves and grab dropped supplies.",
-    playerSpawn: { x: -27.5, z: 21.5 },
-    distantCastle: { x: 30, z: -30, rotationY: 18 },
-    enemySpawns: [
-      { x: 14, z: 15 },
-      { x: 9, z: -18 },
-      { x: -17, z: -11 },
-      { x: 1, z: 10 }
-    ]
-  },
-  sky: {
-    domeRadius: 132,
-    heightOffset: 16,
-    nearCloudSpeed: 0.8,
-    farCloudSpeed: -0.35,
-    sheetBaseHeight: 54,
-    sheetDriftAmount: 10,
-    nearCloudOpacity: 0.92,
-    farCloudOpacity: 0.6
+    objectiveText: "Hold the office tower, clear each floor, and use the elevator to reposition.",
+    building: {
+      floorCount: 10,
+      floorHeight: 4.35,
+      halfWidth: 18,
+      halfDepth: 18,
+      wallThickness: 0.32,
+      slabThickness: 0.26,
+      shaftHalfSize: 3.35,
+      elevatorHalfSize: 2.05,
+      elevatorSpeed: 3.4,
+      lobbyDepth: 8.8,
+      officeInset: 2.2,
+      deskHeight: 0.82,
+      playerSpawnFloor: 0
+    }
   },
   waves: {
     startCount: 4,
     countGrowth: 1,
     maxCount: 10,
     intermission: 2.8,
-    spawnOffsetRadius: 6,
     minPlayerDistance: 14
   },
   player: {

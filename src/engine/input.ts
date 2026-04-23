@@ -113,6 +113,42 @@ export class InputManager {
     return KEY_BINDINGS[action].some((code) => this.keysReleased.has(code));
   }
 
+  consumeFloorSelection(): number | null {
+    const mappings: Array<[string, number]> = [
+      ["Digit1", 1],
+      ["Digit2", 2],
+      ["Digit3", 3],
+      ["Digit4", 4],
+      ["Digit5", 5],
+      ["Digit6", 6],
+      ["Digit7", 7],
+      ["Digit8", 8],
+      ["Digit9", 9],
+      ["Digit0", 10],
+      ["Numpad1", 1],
+      ["Numpad2", 2],
+      ["Numpad3", 3],
+      ["Numpad4", 4],
+      ["Numpad5", 5],
+      ["Numpad6", 6],
+      ["Numpad7", 7],
+      ["Numpad8", 8],
+      ["Numpad9", 9],
+      ["Numpad0", 10]
+    ];
+
+    for (const [code, floor] of mappings) {
+      if (!this.keysPressed.has(code)) {
+        continue;
+      }
+
+      this.keysPressed.delete(code);
+      return floor;
+    }
+
+    return null;
+  }
+
   consumeLookDelta(): { x: number; y: number } {
     const delta = {
       x: this.accumulatedMouseX,

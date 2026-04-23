@@ -83,7 +83,7 @@ export class CollisionWorld {
     origin: pc.Vec3,
     direction: pc.Vec3,
     maxDistance: number,
-    terrainHeightAt: (x: number, z: number) => number
+    terrainHeightAt?: (x: number, z: number, preferredY?: number) => number
   ): pc.Vec3 {
     let bestDistance = maxDistance;
 
@@ -95,14 +95,16 @@ export class CollisionWorld {
       }
     }
 
-    const terrainStep = 0.35;
+    if (terrainHeightAt) {
+      const terrainStep = 0.35;
 
-    for (let distance = terrainStep; distance <= bestDistance; distance += terrainStep) {
-      const point = origin.clone().add(direction.clone().mulScalar(distance));
+      for (let distance = terrainStep; distance <= bestDistance; distance += terrainStep) {
+        const point = origin.clone().add(direction.clone().mulScalar(distance));
 
-      if (point.y <= terrainHeightAt(point.x, point.z) + 0.05) {
-        bestDistance = distance;
-        break;
+        if (point.y <= terrainHeightAt(point.x, point.z, point.y) + 0.05) {
+          bestDistance = distance;
+          break;
+        }
       }
     }
 

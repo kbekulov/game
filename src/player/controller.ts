@@ -56,7 +56,7 @@ export class PlayerController {
       fov: GAME_CONFIG.player.fov,
       nearClip: 0.03,
       farClip: 140,
-      clearColor: new pc.Color(0.72, 0.84, 0.93)
+      clearColor: new pc.Color(0.07, 0.08, 0.1)
     });
     this.camera.camera!.gammaCorrection = pc.GAMMA_SRGB;
     this.camera.camera!.toneMapping = pc.TONEMAP_ACES;
@@ -183,7 +183,7 @@ export class PlayerController {
       this.position.y += this.velocity.y * dt;
     }
 
-    const groundHeight = terrain.heightAt(this.position.x, this.position.z);
+    const groundHeight = terrain.heightAt(this.position.x, this.position.z, this.position.y);
 
     if (this.position.y <= groundHeight) {
       if (!this.grounded && this.velocity.y < -1.8) {

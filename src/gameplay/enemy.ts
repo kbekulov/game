@@ -159,8 +159,7 @@ export class EnemyDrone {
     const distance = toPlayer.length();
     const hasSight = !collision.isLineBlocked(
       this.position.clone().add(new pc.Vec3(0, 0.2, 0)),
-      playerEye,
-      terrain.heightAt.bind(terrain)
+      playerEye
     );
 
     if (distance < GAME_CONFIG.enemies.detectionRange && hasSight) {
@@ -183,7 +182,7 @@ export class EnemyDrone {
     this.position.x = damp(this.position.x, targetX, GAME_CONFIG.enemies.moveSpeed, dt);
     this.position.z = damp(this.position.z, targetZ, GAME_CONFIG.enemies.moveSpeed, dt);
     this.position.y =
-      terrain.heightAt(this.position.x, this.position.z) +
+      terrain.heightAt(this.position.x, this.position.z, this.anchor.y + 1) +
       GAME_CONFIG.enemies.hoverHeight +
       Math.sin(this.phase * 2.2) * 0.28;
 

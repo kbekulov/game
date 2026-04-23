@@ -4,8 +4,8 @@
 
 This project ships without third-party art or audio packs.
 
-- Environment geometry: generated procedurally in TypeScript using PlayCanvas primitive meshes and a custom terrain mesh
-- Environment textures and sky layers: generated procedurally at runtime in TypeScript
+- Environment geometry: generated procedurally in TypeScript using PlayCanvas primitive meshes for a 10-floor office tower, elevator, furnishings, and collision shell
+- Environment textures: generated procedurally at runtime in TypeScript
 - Weapon viewmodel: generated procedurally in TypeScript from PlayCanvas primitives
 - Weapon material textures: generated procedurally at runtime in TypeScript
 - Enemy drones: generated procedurally in TypeScript from PlayCanvas primitives and a torus mesh

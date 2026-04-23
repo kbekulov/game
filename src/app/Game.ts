@@ -10,7 +10,7 @@ import { PistolWeapon } from "../player/weapon";
 import { EnemyDrone } from "../gameplay/enemy";
 import { WorldPickup } from "../gameplay/pickup";
 import { Hud } from "../ui/hud";
-import { damp, randRange } from "../core/math";
+import { damp } from "../core/math";
 
 type GameState = "intro" | "playing" | "lose";
 
@@ -117,6 +117,7 @@ export class Game {
       return;
     }
 
+    const elevatorStatus = this.world.elevator.update(dt, this.input, this.player.getPosition());
     const playerFrame = this.player.update(dt, this.input, this.world.terrain, this.collision);
     const shot = this.weapon.update(
       dt,
@@ -176,15 +177,15 @@ export class Game {
       this.hud.showResult(
         true,
         "Mission Failed",
-        `Wave ${Math.max(1, this.waveNumber)} broke through your position.`,
-        "Press restart or tap R to drop back into the meadow."
+        `Wave ${Math.max(1, this.waveNumber)} overran the tower.`,
+        "Press restart or tap R to redeploy in the lobby."
       );
       this.input.endFrame();
       return;
     }
 
     this.updateWaveDirector(dt);
-    this.updateHud(playerFrame.movementState, playerFrame.aiming);
+    this.updateHud(playerFrame.movementState, playerFrame.aiming, elevatorStatus.prompt);
     this.input.endFrame();
   };
 
@@ -205,10 +206,11 @@ export class Game {
   private resetPlayableState(): void {
     this.prepareFreshRun();
     this.hud.setObjective(this.getWaveObjective());
-    this.updateHud("idle", false);
+    this.updateHud("idle", false, null);
   }
 
   private prepareFreshRun(): void {
+    this.world.elevator.reset();
     this.player.reset(this.world.playerSpawn);
     this.weapon.reset();
     this.waveNumber = 0;
@@ -257,22 +259,18 @@ export class Game {
     let bestCandidate = this.world.enemySpawns[index % this.world.enemySpawns.length].clone();
     let bestDistance = -Infinity;
 
-    for (let attempt = 0; attempt < this.world.enemySpawns.length * 4; attempt += 1) {
-      const baseSpawn = this.world.enemySpawns[(index + attempt) % this.world.enemySpawns.length];
-      const angle = randRange(0, Math.PI * 2);
-      const radius = Math.sqrt(Math.random()) * GAME_CONFIG.waves.spawnOffsetRadius;
-      const x = baseSpawn.x + Math.cos(angle) * radius;
-      const z = baseSpawn.z + Math.sin(angle) * radius;
-      const candidate = new pc.Vec3(x, this.world.terrain.heightAt(x, z) + 0.1, z);
+    for (let attempt = 0; attempt < this.world.enemySpawns.length; attempt += 1) {
+      const candidate =
+        this.world.enemySpawns[(index * 3 + this.waveNumber + attempt) % this.world.enemySpawns.length];
       const distance = candidate.distance(playerPosition);
 
       if (distance >= minDistance) {
-        return candidate;
+        return candidate.clone();
       }
 
       if (distance > bestDistance) {
         bestDistance = distance;
-        bestCandidate = candidate;
+        bestCandidate = candidate.clone();
       }
     }
 
@@ -317,8 +315,7 @@ export class Game {
       if (
         this.collision.isLineBlocked(
           origin,
-          hitPoint,
-          this.world.terrain.heightAt.bind(this.world.terrain)
+          hitPoint
         )
       ) {
         continue;
@@ -344,8 +341,7 @@ export class Game {
     const worldImpact = this.collision.raycastWorld(
       origin,
       direction,
-      maxDistance,
-      this.world.terrain.heightAt.bind(this.world.terrain)
+      maxDistance
     );
     this.spawnBeam(origin, worldImpact, this.playerBeamMaterial, 0.07, 0.03);
   }
@@ -358,7 +354,7 @@ export class Game {
     const type = Math.random() < GAME_CONFIG.pickups.healthChance ? "health" : "ammo";
     const groundedPosition = new pc.Vec3(
       position.x,
-      this.world.terrain.heightAt(position.x, position.z) + 0.08,
+      this.world.terrain.heightAt(position.x, position.z, position.y) + 0.08,
       position.z
     );
 
@@ -398,8 +394,7 @@ export class Game {
     const endPoint = this.collision.raycastWorld(
       origin,
       direction,
-      origin.distance(target),
-      this.world.terrain.heightAt.bind(this.world.terrain)
+      origin.distance(target)
     );
     const reachedPlayer = endPoint.distance(target) < 0.45;
 
@@ -413,17 +408,19 @@ export class Game {
     }
   }
 
-  private updateHud(movementState: string, aiming: boolean): void {
+  private updateHud(movementState: string, aiming: boolean, elevatorPrompt: string | null): void {
     const aliveTargets = this.activeEnemies.filter((enemy) => enemy.isAlive()).length;
     const weaponState = this.weapon.getActionLabel();
     const betweenWaves = this.nextWaveTimer > 0 && aliveTargets === 0;
-    const statusText = betweenWaves
-      ? "Resupply window"
-      : aiming && weaponState === "Ready"
-        ? "Focused aim"
-        : movementState === "idle"
-          ? weaponState
-          : movementState;
+    const floorLabel = this.world.terrain.getFloorLabelFromY(this.player.getPosition().y);
+    const statusText = elevatorPrompt ??
+      (betweenWaves
+        ? `${floorLabel} | Resupply window`
+        : aiming && weaponState === "Ready"
+          ? `${floorLabel} | Focused aim`
+          : movementState === "idle"
+            ? `${floorLabel} | ${weaponState}`
+            : `${floorLabel} | ${movementState}`);
 
     this.hud.setHealth(this.player.getHealth());
     this.hud.setTargets(aliveTargets, this.activeEnemies.length);
@@ -431,10 +428,10 @@ export class Game {
       this.weapon.getAmmo(),
       this.weapon.getReserveAmmo(),
       betweenWaves
-        ? `Wave ${this.waveNumber + 1} inbound`
-        : aiming && weaponState === "Ready"
-          ? "Focused aim active"
-          : weaponState
+        ? `${floorLabel} | Wave ${this.waveNumber + 1} inbound`
+        : elevatorPrompt ?? (aiming && weaponState === "Ready"
+          ? `${floorLabel} | Focused aim active`
+          : `${floorLabel} | ${weaponState}`)
     );
     this.hud.setState(statusText);
   }

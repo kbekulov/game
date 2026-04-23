@@ -9,7 +9,7 @@ export class AudioManager {
   private readonly sfxGain: GainNode | null;
   private readonly noiseBuffer: AudioBuffer | null;
   private windSource: AudioBufferSourceNode | null = null;
-  private birdTimer = randRange(2.5, 5.5);
+  private birdTimer = randRange(4.5, 8.5);
   private unlocked = false;
 
   constructor() {
@@ -61,7 +61,7 @@ export class AudioManager {
 
     if (this.birdTimer <= 0) {
       this.playBirdChirp();
-      this.birdTimer = randRange(3.6, 7.4);
+      this.birdTimer = randRange(5.5, 10.5);
     }
   }
 
@@ -152,14 +152,14 @@ export class AudioManager {
 
     const highpass = this.context.createBiquadFilter();
     highpass.type = "highpass";
-    highpass.frequency.value = 190;
+    highpass.frequency.value = 42;
 
     const lowpass = this.context.createBiquadFilter();
     lowpass.type = "lowpass";
-    lowpass.frequency.value = 1800;
+    lowpass.frequency.value = 420;
 
     const gain = this.context.createGain();
-    gain.gain.value = 0.22;
+    gain.gain.value = 0.18;
 
     wind.connect(highpass);
     highpass.connect(lowpass);
@@ -239,15 +239,9 @@ export class AudioManager {
     }
 
     const now = this.context.currentTime;
-    this.playTone(now, randRange(1400, 1900), randRange(2000, 2600), 0.16, 0.025, "triangle");
-    this.playTone(
-      now + 0.12,
-      randRange(1900, 2300),
-      randRange(2400, 3100),
-      0.11,
-      0.018,
-      "triangle"
-    );
+    this.playTone(now, randRange(180, 260), randRange(140, 210), 0.18, 0.012, "triangle");
+    this.playNoise(now + 0.03, 0.04, 0.01, 1200, 3600);
+    this.playTone(now + 0.2, randRange(620, 880), randRange(420, 700), 0.08, 0.006, "square");
   }
 
   private createNoiseBuffer(duration: number): AudioBuffer {

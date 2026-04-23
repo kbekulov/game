@@ -1,13 +1,12 @@
 # Greenfire Range
 
-Greenfire Range is a compact playable 3D first-person shooter vertical slice built with PlayCanvas, TypeScript, npm, and Vite. The slice focuses on scenic outdoor atmosphere and polished first-person pistol handling over content sprawl.
+Greenfire Range is a compact playable 3D first-person shooter vertical slice built with PlayCanvas, TypeScript, npm, and Vite. The slice now takes place inside a procedural 10-floor office tower and focuses on polished first-person pistol handling over content sprawl.
 
 ## Features
 
-- Hilly meadow environment with a dirt path, scattered rocks, trees, wildflowers, a broken stone ruin, and a fence line
-- Procedural texture pass for terrain, props, and pistol materials, plus layered moving clouds in the sky
-- A huge distant castle silhouette on the horizon to deepen the mood of the meadow
-- First-person controller with mouse look, walk, jog, sprint, jump, gravity, terrain following, and solid collision against world props
+- Procedural enclosed office building with 10 stacked floors, exterior facades, open-plan desk areas, meeting rooms, and a central elevator shaft
+- Working elevator ride between all 10 floors with in-lift floor selection
+- First-person controller with mouse look, walk, jog, sprint, jump, gravity, multi-floor grounding, and solid collision against indoor props and walls
 - Procedural Glock-style pistol viewmodel with:
   - idle, walk, jog, sprint, and airborne poses
   - fire, reload, empty reload, press-check, and dry fire actions
@@ -16,7 +15,7 @@ Greenfire Range is a compact playable 3D first-person shooter vertical slice bui
 - Ammo and health pickups that occasionally drop from destroyed drones
 - HUD with health, target count, ammo, and state feedback
 - Survival loop with restart flow after being overrun
-- Procedural audio for gunshots, reloads, dry fire, footsteps, enemy shots, damage feedback, and ambient meadow wind/birds
+- Procedural audio for gunshots, reloads, dry fire, footsteps, enemy shots, damage feedback, and office-style ambient hum
 
 ## Setup
 
@@ -62,6 +61,7 @@ The repo root `index.html` is a redirect shim. The actual Vite app entry lives a
 - `Mouse`: look / fire
 - `R`: reload
 - `V`: press-check
+- `1-0`: select elevator floors while inside the elevator (`0` = floor 10)
 - `Esc`: release cursor
 - `R` on win/lose screen: restart mission
 
@@ -78,6 +78,7 @@ src/
     Game.ts
   core/
     math.ts
+    procedural-textures.ts
   engine/
     audio.ts
     input.ts
@@ -91,6 +92,7 @@ src/
     hud.ts
   world/
     collision.ts
+    elevator.ts
     environment.ts
     terrain.ts
   main.ts
@@ -105,7 +107,7 @@ vite.config.ts
 
 ## Tuning
 
-Core gameplay tuning lives in [src/app/config.ts](./src/app/config.ts). Movement speeds, mouse sensitivity, jump tuning, pistol timings, enemy aggression, and map spawn data are all concentrated there to keep the slice easy to iterate.
+Core gameplay tuning lives in [src/app/config.ts](./src/app/config.ts). Movement speeds, mouse sensitivity, jump tuning, pistol timings, enemy aggression, building dimensions, elevator speed, and map spawn data are all concentrated there to keep the slice easy to iterate.
 
 ## Verification
 
