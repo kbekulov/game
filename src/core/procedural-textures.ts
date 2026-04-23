@@ -140,7 +140,7 @@ const createCloudTextureSet = (
     width,
     height,
     (u, v) => sampleCloudTexture(u, v, seed),
-    false
+    true
   );
 
   return {
@@ -503,20 +503,22 @@ const sampleSkyTexture = (u: number, v: number): TextureSample => {
 };
 
 const sampleCloudTexture = (u: number, v: number, seed: number): TextureSample => {
-  const arc = smoothstep(0.98, 0.08, v);
-  const coverage =
-    fbm(u * 3.6 + seed * 0.03, v * 6.2 + seed * 0.05, seed, 5) * 0.78 +
-    fbm(u * 8.8 + seed * 0.07, v * 12 + seed * 0.04, seed + 7, 3) * 0.22;
-  const wisps = smoothstep(0.54, 0.88, coverage) * arc;
-  const alpha = clamp((wisps - 0.3) * 1.45, 0, 0.9);
-  const colorLift = 0.88 + coverage * 0.16;
+  const domeMask = Math.pow(smoothstep(0.92, 0.04, v), 0.42);
+  const primary =
+    fbm(u * 2.8 + seed * 0.03, v * 5 + seed * 0.05, seed, 5) * 0.72 +
+    fbm(u * 7.2 + seed * 0.08, v * 10.6 + seed * 0.02, seed + 7, 3) * 0.28;
+  const billows = smoothstep(0.44, 0.7, primary);
+  const wisps = smoothstep(0.52, 0.82, fbm(u * 15.5, v * 19.2, seed + 19, 3));
+  const edgeFade = smoothstep(0.02, 0.14, u) * smoothstep(0.98, 0.86, u);
+  const alpha = clamp((billows * 0.88 + wisps * 0.18) * domeMask * edgeFade, 0, 0.96);
+  const colorLift = 0.86 + billows * 0.2 + wisps * 0.07;
 
   return {
     r: colorLift,
     g: colorLift * 0.98,
     b: colorLift * 0.96,
     a: alpha,
-    height: coverage
+    height: primary
   };
 };
 

@@ -56,6 +56,13 @@ export class EnvironmentBuilder {
     this.createRuin(worldRoot, terrain, materials.stone, materials.trim);
     this.createFence(worldRoot, terrain, materials.wood, materials.trim);
     this.createWildflowers(worldRoot, terrain, materials.flowerA, materials.flowerB);
+    this.createDistantCastle(
+      worldRoot,
+      terrain,
+      materials.castleStone,
+      materials.castleTrim,
+      materials.castleGlow
+    );
 
     const playerSpawnHeight = terrain.heightAt(
       GAME_CONFIG.world.playerSpawn.x,
@@ -180,6 +187,30 @@ export class EnvironmentBuilder {
         gloss: 0.4,
         metalness: 0.02,
         textures: textures.flowerB
+      }),
+      castleStone: this.createMaterial({
+        diffuse: [0.16, 0.17, 0.22],
+        emissive: [0.03, 0.03, 0.05],
+        emissiveIntensity: 1.05,
+        gloss: 0.24,
+        metalness: 0.04,
+        textures: textures.stone
+      }),
+      castleTrim: this.createMaterial({
+        diffuse: [0.08, 0.09, 0.13],
+        emissive: [0.03, 0.04, 0.07],
+        emissiveIntensity: 1.15,
+        gloss: 0.32,
+        metalness: 0.08,
+        textures: textures.trim
+      }),
+      castleGlow: this.createMaterial({
+        diffuse: [0.2, 0.24, 0.34],
+        emissive: [0.18, 0.28, 0.42],
+        emissiveIntensity: 1.7,
+        gloss: 0.38,
+        metalness: 0.12,
+        textures: textures.trim
       })
     };
   }
@@ -494,6 +525,150 @@ export class EnvironmentBuilder {
         new pc.Vec3(0.03, 0.24, 0.03)
       ).render!.castShadows = false;
     }
+  }
+
+  private createDistantCastle(
+    root: pc.Entity,
+    terrain: Terrain,
+    castleStone: pc.StandardMaterial,
+    castleTrim: pc.StandardMaterial,
+    castleGlow: pc.StandardMaterial
+  ): void {
+    const castleX = GAME_CONFIG.world.distantCastle.x;
+    const castleZ = GAME_CONFIG.world.distantCastle.z;
+    const baseY = terrain.heightAt(castleX, castleZ) + 1.4;
+    const castle = new pc.Entity("distant-castle");
+    castle.setLocalPosition(castleX, baseY, castleZ);
+    castle.setLocalEulerAngles(0, GAME_CONFIG.world.distantCastle.rotationY, 0);
+    root.addChild(castle);
+
+    this.addPrimitive(
+      castle,
+      "castle-mesa",
+      "cylinder",
+      castleStone,
+      new pc.Vec3(0, 9.5, 0),
+      new pc.Vec3(18, 19, 16)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-ridge-front",
+      "sphere",
+      castleStone,
+      new pc.Vec3(0, 4.4, 5.4),
+      new pc.Vec3(19, 8.6, 12.5)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-ridge-back",
+      "sphere",
+      castleStone,
+      new pc.Vec3(-1.5, 6.2, -5.8),
+      new pc.Vec3(15, 9.5, 12.5)
+    );
+
+    this.addPrimitive(
+      castle,
+      "castle-keep",
+      "box",
+      castleStone,
+      new pc.Vec3(0, 26, -1),
+      new pc.Vec3(9.5, 26, 11.5)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-keep-top",
+      "box",
+      castleTrim,
+      new pc.Vec3(0, 40.5, -1),
+      new pc.Vec3(11.5, 3.2, 13.5)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-gatehouse",
+      "box",
+      castleTrim,
+      new pc.Vec3(0, 16.2, 10.4),
+      new pc.Vec3(10.5, 9.5, 4.2)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-wall-left",
+      "box",
+      castleStone,
+      new pc.Vec3(-11.5, 16, 4),
+      new pc.Vec3(3.2, 8.8, 15.5)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-wall-right",
+      "box",
+      castleStone,
+      new pc.Vec3(11.5, 16.4, 2.2),
+      new pc.Vec3(3.2, 9.2, 15.5)
+    );
+    this.addPrimitive(
+      castle,
+      "castle-back-wall",
+      "box",
+      castleStone,
+      new pc.Vec3(0, 15.5, -11.2),
+      new pc.Vec3(20.5, 8.2, 3.1)
+    );
+
+    const towerAnchors = [
+      { x: -10.8, z: -9.2, height: 28, radius: 4.4 },
+      { x: 10.8, z: -8.8, height: 30, radius: 4.6 },
+      { x: -13.8, z: 10.4, height: 25, radius: 3.8 },
+      { x: 13.8, z: 9.8, height: 24, radius: 3.8 }
+    ];
+
+    for (const [index, tower] of towerAnchors.entries()) {
+      this.addPrimitive(
+        castle,
+        `castle-tower-${index}`,
+        "cylinder",
+        castleStone,
+        new pc.Vec3(tower.x, tower.height * 0.5 + 9, tower.z),
+        new pc.Vec3(tower.radius, tower.height, tower.radius)
+      );
+      this.addPrimitive(
+        castle,
+        `castle-spire-${index}`,
+        "cone",
+        castleTrim,
+        new pc.Vec3(tower.x, tower.height + 18, tower.z),
+        new pc.Vec3(tower.radius * 0.9, 14, tower.radius * 0.9)
+      );
+    }
+
+    const windowRows = [
+      { y: 20, z: 5.1 },
+      { y: 27, z: 5.2 },
+      { y: 34, z: 5.3 }
+    ];
+
+    for (const [rowIndex, row] of windowRows.entries()) {
+      for (const offsetX of [-2.8, 0, 2.8]) {
+        this.addPrimitive(
+          castle,
+          `castle-window-${rowIndex}-${offsetX}`,
+          "box",
+          castleGlow,
+          new pc.Vec3(offsetX, row.y, row.z),
+          new pc.Vec3(0.7, 1.8, 0.2)
+        ).render!.castShadows = false;
+      }
+    }
+
+    this.addPrimitive(
+      castle,
+      "castle-obelisk",
+      "cone",
+      castleGlow,
+      new pc.Vec3(0, 49.5, -0.8),
+      new pc.Vec3(2.2, 10, 2.2)
+    ).render!.castShadows = false;
   }
 
   private addPrimitive(

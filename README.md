@@ -6,6 +6,7 @@ Greenfire Range is a compact playable 3D first-person shooter vertical slice bui
 
 - Hilly meadow environment with a dirt path, scattered rocks, trees, wildflowers, a broken stone ruin, and a fence line
 - Procedural texture pass for terrain, props, and pistol materials, plus layered moving clouds in the sky
+- A huge distant castle silhouette on the horizon to deepen the mood of the meadow
 - First-person controller with mouse look, walk, jog, sprint, jump, gravity, terrain following, and solid collision against world props
 - Procedural Glock-style pistol viewmodel with:
   - idle, walk, jog, sprint, and airborne poses
