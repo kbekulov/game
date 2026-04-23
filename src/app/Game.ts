@@ -62,7 +62,7 @@ export class Game {
 
     this.world = new EnvironmentBuilder(this.app, this.app.root, this.collision).build();
     this.player = new PlayerController(this.app.root);
-    this.weapon = new PistolWeapon(this.player.weaponMount);
+    this.weapon = new PistolWeapon(this.app.graphicsDevice, this.player.weaponMount);
     this.effectsRoot = new pc.Entity("effects");
     this.app.root.addChild(this.effectsRoot);
 
@@ -94,6 +94,7 @@ export class Game {
     this.hud.setReticleKick(this.reticleKick);
     this.audio.update(dt);
     this.updateBeams(dt);
+    this.world.sky.update(dt, this.player.getEyePosition());
 
     if (this.state === "intro") {
       this.input.endFrame();

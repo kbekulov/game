@@ -1,6 +1,7 @@
 import * as pc from "playcanvas";
 
 import { GAME_CONFIG, MovementState } from "../app/config";
+import { applyTextureSet, createWeaponTextureLibrary, TextureSet } from "../core/procedural-textures";
 import { clamp, damp, easeInOutCubic, inverseLerp, lerp, trianglePulse } from "../core/math";
 import { InputManager } from "../engine/input";
 
@@ -58,11 +59,11 @@ export class PistolWeapon {
   private slideLocked = false;
   private readonly audioCues: WeaponAudioCue[] = [];
 
-  constructor(parent: pc.Entity) {
+  constructor(device: pc.GraphicsDevice, parent: pc.Entity) {
     this.root = new pc.Entity("pistol-root");
     parent.addChild(this.root);
 
-    const materials = this.createMaterials();
+    const materials = this.createMaterials(device);
     this.frame = this.addPart(
       this.root,
       "frame",
@@ -422,13 +423,50 @@ export class PistolWeapon {
     this.recoilBack = damp(this.recoilBack, 0, 18, dt);
   }
 
-  private createMaterials(): Record<string, pc.StandardMaterial> {
+  private createMaterials(device: pc.GraphicsDevice): Record<string, pc.StandardMaterial> {
+    const textures = createWeaponTextureLibrary(device);
+
     return {
-      slide: this.createMaterial([0.11, 0.12, 0.13], [0.03, 0.04, 0.05], 0.66, 0.36),
-      frame: this.createMaterial([0.18, 0.19, 0.17], [0.03, 0.04, 0.03], 0.42, 0.1),
-      steel: this.createMaterial([0.36, 0.37, 0.39], [0.05, 0.05, 0.06], 0.8, 0.62),
-      magazine: this.createMaterial([0.16, 0.16, 0.18], [0.03, 0.03, 0.04], 0.62, 0.26),
-      flash: this.createMaterial([1, 0.82, 0.45], [1, 0.8, 0.32], 0.92, 0.05, 2.8)
+      slide: this.createMaterial(
+        [0.11, 0.12, 0.13],
+        [0.03, 0.04, 0.05],
+        0.66,
+        0.36,
+        1,
+        textures.slide
+      ),
+      frame: this.createMaterial(
+        [0.18, 0.19, 0.17],
+        [0.03, 0.04, 0.03],
+        0.42,
+        0.1,
+        1,
+        textures.frame
+      ),
+      steel: this.createMaterial(
+        [0.36, 0.37, 0.39],
+        [0.05, 0.05, 0.06],
+        0.8,
+        0.62,
+        1,
+        textures.steel
+      ),
+      magazine: this.createMaterial(
+        [0.16, 0.16, 0.18],
+        [0.03, 0.03, 0.04],
+        0.62,
+        0.26,
+        1,
+        textures.magazine
+      ),
+      flash: this.createMaterial(
+        [1, 0.82, 0.45],
+        [1, 0.8, 0.32],
+        0.92,
+        0.05,
+        2.8,
+        textures.flash
+      )
     };
   }
 
@@ -437,7 +475,8 @@ export class PistolWeapon {
     emissive: [number, number, number],
     gloss: number,
     metalness: number,
-    emissiveIntensity = 1
+    emissiveIntensity = 1,
+    textures?: TextureSet
   ): pc.StandardMaterial {
     const material = new pc.StandardMaterial();
     material.diffuse.set(...diffuse);
@@ -446,6 +485,7 @@ export class PistolWeapon {
     material.useMetalness = true;
     material.metalness = metalness;
     material.gloss = gloss;
+    applyTextureSet(material, textures);
     material.update();
     return material;
   }

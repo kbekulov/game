@@ -1,8 +1,10 @@
 import * as pc from "playcanvas";
 
 import { GAME_CONFIG } from "../app/config";
+import { applyTextureSet, createEnvironmentTextureLibrary, TextureSet } from "../core/procedural-textures";
 import { degrees, randRange, radians } from "../core/math";
 import { CollisionWorld } from "./collision";
+import { SkyDome } from "./sky";
 import { Terrain } from "./terrain";
 
 interface MaterialOptions {
@@ -13,6 +15,11 @@ interface MaterialOptions {
   metalness?: number;
   opacity?: number;
   cull?: number;
+  blendType?: number;
+  useLighting?: boolean;
+  useFog?: boolean;
+  depthWrite?: boolean;
+  textures?: TextureSet;
 }
 
 export interface WorldScene {
@@ -20,6 +27,7 @@ export interface WorldScene {
   readonly terrain: Terrain;
   readonly playerSpawn: pc.Vec3;
   readonly enemySpawns: pc.Vec3[];
+  readonly sky: SkyDome;
 }
 
 export class EnvironmentBuilder {
@@ -36,6 +44,7 @@ export class EnvironmentBuilder {
   build(): WorldScene {
     this.configureScene();
 
+    const sky = new SkyDome(this.app, this.root);
     const worldRoot = new pc.Entity("world");
     this.root.addChild(worldRoot);
 
@@ -67,7 +76,8 @@ export class EnvironmentBuilder {
       root: worldRoot,
       terrain,
       playerSpawn,
-      enemySpawns
+      enemySpawns,
+      sky
     };
   }
 
@@ -103,62 +113,73 @@ export class EnvironmentBuilder {
   }
 
   private createMaterialPalette(): Record<string, pc.StandardMaterial> {
+    const textures = createEnvironmentTextureLibrary(this.app.graphicsDevice);
+
     return {
       grass: this.createMaterial({
         diffuse: [0.26, 0.54, 0.22],
         emissive: [0.04, 0.06, 0.02],
         gloss: 0.28,
-        metalness: 0.03
+        metalness: 0.03,
+        textures: textures.grass
       }),
       dirt: this.createMaterial({
         diffuse: [0.48, 0.34, 0.2],
         emissive: [0.05, 0.03, 0.01],
         gloss: 0.18,
-        metalness: 0.02
+        metalness: 0.02,
+        textures: textures.dirt
       }),
       rock: this.createMaterial({
         diffuse: [0.46, 0.46, 0.44],
         emissive: [0.03, 0.03, 0.04],
         gloss: 0.22,
-        metalness: 0.08
+        metalness: 0.08,
+        textures: textures.rock
       }),
       stone: this.createMaterial({
         diffuse: [0.58, 0.58, 0.55],
         emissive: [0.04, 0.04, 0.04],
         gloss: 0.3,
-        metalness: 0.06
+        metalness: 0.06,
+        textures: textures.stone
       }),
       trim: this.createMaterial({
         diffuse: [0.3, 0.31, 0.33],
         emissive: [0.04, 0.05, 0.06],
         gloss: 0.54,
-        metalness: 0.14
+        metalness: 0.14,
+        textures: textures.trim
       }),
       wood: this.createMaterial({
         diffuse: [0.35, 0.25, 0.16],
         emissive: [0.03, 0.02, 0.01],
         gloss: 0.22,
-        metalness: 0.02
+        metalness: 0.02,
+        textures: textures.wood
       }),
       leaf: this.createMaterial({
         diffuse: [0.22, 0.44, 0.17],
         emissive: [0.03, 0.06, 0.02],
         gloss: 0.26,
-        metalness: 0.01
+        metalness: 0.01,
+        textures: textures.leaf
       }),
       flowerA: this.createMaterial({
         diffuse: [0.94, 0.86, 0.38],
         emissive: [0.12, 0.11, 0.04],
         emissiveIntensity: 1.1,
         gloss: 0.4,
-        metalness: 0.02
+        metalness: 0.02,
+        textures: textures.flowerA
       }),
       flowerB: this.createMaterial({
         diffuse: [0.76, 0.34, 0.42],
         emissive: [0.1, 0.03, 0.04],
         emissiveIntensity: 0.9,
         gloss: 0.4,
-        metalness: 0.02
+        metalness: 0.02,
+        textures: textures.flowerB
       })
     };
   }
@@ -510,14 +531,21 @@ export class EnvironmentBuilder {
     material.gloss = options.gloss ?? 0.34;
     material.opacity = options.opacity ?? 1;
     material.opacityFadesSpecular = true;
+    material.useLighting = options.useLighting ?? true;
+    material.useFog = options.useFog ?? true;
+    material.depthWrite = options.depthWrite ?? true;
 
     if (options.emissive) {
       material.emissive.set(...options.emissive);
       material.emissiveIntensity = options.emissiveIntensity ?? 1;
     }
 
+    applyTextureSet(material, options.textures);
+
     if (options.opacity !== undefined && options.opacity < 1) {
-      material.blendType = pc.BLEND_NORMAL;
+      material.blendType = options.blendType ?? pc.BLEND_NORMAL;
+    } else if (options.blendType !== undefined) {
+      material.blendType = options.blendType;
     }
 
     if (options.cull !== undefined) {

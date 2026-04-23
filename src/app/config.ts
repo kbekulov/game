@@ -13,6 +13,14 @@ export const GAME_CONFIG = {
       { x: 1, z: 10 }
     ]
   },
+  sky: {
+    domeRadius: 132,
+    heightOffset: 16,
+    nearCloudSpeed: 0.8,
+    farCloudSpeed: -0.35,
+    nearCloudOpacity: 0.92,
+    farCloudOpacity: 0.6
+  },
   waves: {
     startCount: 4,
     countGrowth: 1,
